@@ -1,0 +1,60 @@
+{
+  "generated": "2026-01-18T15:35:06.488Z",
+  "categories": {
+    "wopl": {
+      "description": "General WOPL banks",
+      "banks": [
+        {
+          "name": "Apogee-IMF-90",
+          "file": "Apogee-IMF-90.wopl",
+          "size": 16983
+        },
+        {
+          "name": "DMXOPL3-by-sneakernets-GS",
+          "file": "DMXOPL3-by-sneakernets-GS.wopl",
+          "size": 118767
+        },
+        {
+          "name": "GM-By-J.A.Nguyen-and-Wohlstand",
+          "file": "GM-By-J.A.Nguyen-and-Wohlstand.wopl",
+          "size": 16983
+        },
+        {
+          "name": "Wohlstand's-modded-FatMan",
+          "file": "Wohlstand's-modded-FatMan.wopl",
+          "size": 16983
+        },
+        {
+          "name": "fatman-2op",
+          "file": "fatman-2op.wopl",
+          "size": 16983
+        },
+        {
+          "name": "fatman-4op",
+          "file": "fatman-4op.wopl",
+          "size": 16983
+        },
+        {
+          "name": "msadlib",
+          "file": "msadlib.wopl",
+          "size": 16983
+        }
+      ]
+    },
+    "ail": {
+      "description": "AIL (Miles Sound System) banks",
+      "banks": [
+        {
+          "name": "MonopolyDeluxe",
+          "file": "MonopolyDeluxe.wopl",
+          "size": 16983
+        },
+        {
+          "name": "master_of_magic",
+          "file": "master_of_magic.wopl",
+          "size": 25465
+        }
+      ]
+    }
+  }
+}
