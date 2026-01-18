@@ -375,7 +375,7 @@ var AdlMidi = class {
       this.node.disconnect();
       this.node = null;
     }
-    this._ready = false;
+    __privateSet(this, _ready, false);
   }
   /**
    * Suspend the AudioContext (save CPU when not in use)
