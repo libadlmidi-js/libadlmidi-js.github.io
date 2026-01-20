@@ -494,6 +494,40 @@ var AdlMidi = class {
     });
   }
   /**
+   * Get the version string of the linked libADLMIDI library
+   * @returns {Promise<string>}
+   */
+  async getLibraryVersion() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "libraryVersion",
+        /** @param {{version: string}} msg */
+        (msg) => {
+          resolve(msg.version);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getLibraryVersion" });
+    });
+  }
+  /**
+   * Get the version of the linked libADLMIDI library as an object
+   * @returns {Promise<{major: number, minor: number, patch: number}>}
+   */
+  async getVersion() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "version",
+        /** @param {{version: {major: number, minor: number, patch: number}}} msg */
+        (msg) => {
+          resolve(msg.version);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getVersion" });
+    });
+  }
+  /**
    * Get the number of emulated chips
    * @returns {Promise<number>}
    */
