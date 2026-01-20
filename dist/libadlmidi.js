@@ -157,6 +157,47 @@ var AdlMidi = class {
     __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "programChange", channel, program });
   }
   /**
+   * Send note aftertouch
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {number} note - Note number (0-127)
+   * @param {number} pressure - Pressure (0-127)
+   */
+  noteAfterTouch(channel, note, pressure) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "noteAfterTouch", channel, note, pressure });
+  }
+  /**
+   * Send channel aftertouch
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {number} pressure - Pressure (0-127)
+   */
+  channelAfterTouch(channel, pressure) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "channelAfterTouch", channel, pressure });
+  }
+  /**
+   * Change bank (16-bit)
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {number} bank - Bank number
+   */
+  bankChange(channel, bank) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "bankChange", channel, bank });
+  }
+  /**
+   * Change bank MSB
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {number} msb - Bank MSB (0-127)
+   */
+  bankChangeMSB(channel, msb) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "bankChangeMSB", channel, msb });
+  }
+  /**
+   * Change bank LSB
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {number} lsb - Bank LSB (0-127)
+   */
+  bankChangeLSB(channel, lsb) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "bankChangeLSB", channel, lsb });
+  }
+  /**
    * Reset the real-time state (stops all notes, resets controllers)
    * @returns {void}
    */
@@ -308,6 +349,13 @@ var AdlMidi = class {
     __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setTremolo", enabled });
   }
   /**
+   * Run emulator with PCM rate to reduce CPU usage
+   * @param {boolean} enabled
+   */
+  setRunAtPcmRate(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setRunAtPcmRate", enabled });
+  }
+  /**
    * Switch the OPL3 emulator core at runtime
    * 
    * Only emulators compiled into the current build profile are available:
@@ -357,6 +405,57 @@ var AdlMidi = class {
         }
       );
       __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getEmulatorName" });
+    });
+  }
+  /**
+   * Get the number of emulated chips
+   * @returns {Promise<number>}
+   */
+  async getNumChips() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "numChips",
+        /** @param {{chips: number}} msg */
+        (msg) => {
+          resolve(msg.chips);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getNumChips" });
+    });
+  }
+  /**
+   * Get the number of emulated chips obtained
+   * @returns {Promise<number>}
+   */
+  async getNumChipsObtained() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "numChipsObtained",
+        /** @param {{chips: number}} msg */
+        (msg) => {
+          resolve(msg.chips);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getNumChipsObtained" });
+    });
+  }
+  /**
+   * Get the volume range model
+   * @returns {Promise<number>}
+   */
+  async getVolumeModel() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "volumeModel",
+        /** @param {{model: number}} msg */
+        (msg) => {
+          resolve(msg.model);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getVolumeModel" });
     });
   }
   /**
