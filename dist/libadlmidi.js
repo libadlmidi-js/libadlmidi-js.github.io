@@ -588,11 +588,45 @@ var AdlMidi = class {
           if (msg.success) {
             resolve({ duration: msg.duration });
           } else {
-            reject(new Error(msg.error || "Failed to load MIDI data"));
+            reject(new Error(msg.error || "Failed to parse MIDI data"));
           }
         }
       );
       __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "loadMidi", data: arrayBuffer });
+    });
+  }
+  /**
+   * Get the music title of the loaded MIDI file
+   * @returns {Promise<string>}
+   */
+  async getMusicTitle() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "musicTitle",
+        /** @param {{title: string}} msg */
+        (msg) => {
+          resolve(msg.title);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getMusicTitle" });
+    });
+  }
+  /**
+   * Get the copyright notice of the loaded MIDI file
+   * @returns {Promise<string>}
+   */
+  async getMusicCopyright() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "musicCopyright",
+        /** @param {{copyright: string}} msg */
+        (msg) => {
+          resolve(msg.copyright);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getMusicCopyright" });
     });
   }
   /**

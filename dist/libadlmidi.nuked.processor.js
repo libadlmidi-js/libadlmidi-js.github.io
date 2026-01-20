@@ -2605,7 +2605,7 @@ async function createADLMIDI(moduleArg = {}) {
   Module["setValue"] = setValue;
   Module["getValue"] = getValue;
   Module["UTF8ToString"] = UTF8ToString;
-  var _adl_init, _adl_close, _adl_setNumChips, _adl_getNumChips, _adl_getNumChipsObtained, _adl_setBank, _adl_getBanksCount, _adl_getBankNames, _adl_reserveBanks, _adl_getBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_getNumFourOpsChn, _adl_setPercMode, _adl_setHVibrato, _adl_setHTremolo, _adl_setScaleModulators, _adl_setFullRangeBrightness, _adl_setAutoArpeggio, _adl_getAutoArpeggio, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_getVolumeRangeModel, _adl_setChannelAllocMode, _adl_getChannelAllocMode, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_chipEmulatorName, _adl_switchEmulator, _adl_setRunAtPcmRate, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_noteAfterTouch, _adl_rt_channelAfterTouch, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, _adl_rt_bankChangeLSB, _adl_rt_bankChangeMSB, _adl_rt_bankChange, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+  var _adl_init, _adl_close, _adl_setNumChips, _adl_getNumChips, _adl_getNumChipsObtained, _adl_setBank, _adl_getBanksCount, _adl_getBankNames, _adl_reserveBanks, _adl_getBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_getNumFourOpsChn, _adl_setPercMode, _adl_setHVibrato, _adl_setHTremolo, _adl_setScaleModulators, _adl_setFullRangeBrightness, _adl_setAutoArpeggio, _adl_getAutoArpeggio, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_getVolumeRangeModel, _adl_setChannelAllocMode, _adl_getChannelAllocMode, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_chipEmulatorName, _adl_switchEmulator, _adl_setRunAtPcmRate, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_metaMusicTitle, _adl_metaMusicCopyright, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_noteAfterTouch, _adl_rt_channelAfterTouch, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, _adl_rt_bankChangeLSB, _adl_rt_bankChangeMSB, _adl_rt_bankChange, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
   function assignWasmExports(wasmExports2) {
     _adl_init = Module["_adl_init"] = wasmExports2["p"];
     _adl_close = Module["_adl_close"] = wasmExports2["q"];
@@ -2650,30 +2650,32 @@ async function createADLMIDI(moduleArg = {}) {
     _adl_positionSeek = Module["_adl_positionSeek"] = wasmExports2["ba"];
     _adl_positionRewind = Module["_adl_positionRewind"] = wasmExports2["ca"];
     _adl_setTempo = Module["_adl_setTempo"] = wasmExports2["da"];
-    _adl_play = Module["_adl_play"] = wasmExports2["ea"];
-    _adl_playFormat = Module["_adl_playFormat"] = wasmExports2["fa"];
-    _adl_generate = Module["_adl_generate"] = wasmExports2["ga"];
-    _adl_generateFormat = Module["_adl_generateFormat"] = wasmExports2["ha"];
-    _adl_atEnd = Module["_adl_atEnd"] = wasmExports2["ia"];
-    _adl_panic = Module["_adl_panic"] = wasmExports2["ja"];
-    _adl_rt_resetState = Module["_adl_rt_resetState"] = wasmExports2["ka"];
-    _adl_rt_noteOn = Module["_adl_rt_noteOn"] = wasmExports2["la"];
-    _adl_rt_noteOff = Module["_adl_rt_noteOff"] = wasmExports2["ma"];
-    _adl_rt_noteAfterTouch = Module["_adl_rt_noteAfterTouch"] = wasmExports2["na"];
-    _adl_rt_channelAfterTouch = Module["_adl_rt_channelAfterTouch"] = wasmExports2["oa"];
-    _adl_rt_controllerChange = Module["_adl_rt_controllerChange"] = wasmExports2["pa"];
-    _adl_rt_patchChange = Module["_adl_rt_patchChange"] = wasmExports2["qa"];
-    _adl_rt_pitchBend = Module["_adl_rt_pitchBend"] = wasmExports2["ra"];
-    _adl_rt_pitchBendML = Module["_adl_rt_pitchBendML"] = wasmExports2["sa"];
-    _adl_rt_bankChangeLSB = Module["_adl_rt_bankChangeLSB"] = wasmExports2["ta"];
-    _adl_rt_bankChangeMSB = Module["_adl_rt_bankChangeMSB"] = wasmExports2["ua"];
-    _adl_rt_bankChange = Module["_adl_rt_bankChange"] = wasmExports2["va"];
-    __emscripten_timeout = wasmExports2["wa"];
-    _malloc = Module["_malloc"] = wasmExports2["xa"];
-    _free = Module["_free"] = wasmExports2["ya"];
-    __emscripten_stack_restore = wasmExports2["za"];
-    __emscripten_stack_alloc = wasmExports2["Aa"];
-    _emscripten_stack_get_current = wasmExports2["Ba"];
+    _adl_metaMusicTitle = Module["_adl_metaMusicTitle"] = wasmExports2["ea"];
+    _adl_metaMusicCopyright = Module["_adl_metaMusicCopyright"] = wasmExports2["fa"];
+    _adl_play = Module["_adl_play"] = wasmExports2["ga"];
+    _adl_playFormat = Module["_adl_playFormat"] = wasmExports2["ha"];
+    _adl_generate = Module["_adl_generate"] = wasmExports2["ia"];
+    _adl_generateFormat = Module["_adl_generateFormat"] = wasmExports2["ja"];
+    _adl_atEnd = Module["_adl_atEnd"] = wasmExports2["ka"];
+    _adl_panic = Module["_adl_panic"] = wasmExports2["la"];
+    _adl_rt_resetState = Module["_adl_rt_resetState"] = wasmExports2["ma"];
+    _adl_rt_noteOn = Module["_adl_rt_noteOn"] = wasmExports2["na"];
+    _adl_rt_noteOff = Module["_adl_rt_noteOff"] = wasmExports2["oa"];
+    _adl_rt_noteAfterTouch = Module["_adl_rt_noteAfterTouch"] = wasmExports2["pa"];
+    _adl_rt_channelAfterTouch = Module["_adl_rt_channelAfterTouch"] = wasmExports2["qa"];
+    _adl_rt_controllerChange = Module["_adl_rt_controllerChange"] = wasmExports2["ra"];
+    _adl_rt_patchChange = Module["_adl_rt_patchChange"] = wasmExports2["sa"];
+    _adl_rt_pitchBend = Module["_adl_rt_pitchBend"] = wasmExports2["ta"];
+    _adl_rt_pitchBendML = Module["_adl_rt_pitchBendML"] = wasmExports2["ua"];
+    _adl_rt_bankChangeLSB = Module["_adl_rt_bankChangeLSB"] = wasmExports2["va"];
+    _adl_rt_bankChangeMSB = Module["_adl_rt_bankChangeMSB"] = wasmExports2["wa"];
+    _adl_rt_bankChange = Module["_adl_rt_bankChange"] = wasmExports2["xa"];
+    __emscripten_timeout = wasmExports2["ya"];
+    _malloc = Module["_malloc"] = wasmExports2["za"];
+    _free = Module["_free"] = wasmExports2["Aa"];
+    __emscripten_stack_restore = wasmExports2["Ba"];
+    __emscripten_stack_alloc = wasmExports2["Ca"];
+    _emscripten_stack_get_current = wasmExports2["Da"];
     memory = wasmMemory = wasmExports2["n"];
     __indirect_function_table = wasmExports2["__indirect_function_table"];
   }
@@ -3174,6 +3176,18 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
       case "loadMidi":
         this.loadMidiData(msg.data);
         break;
+      case "getMusicTitle": {
+        const ptr = this.adl._adl_metaMusicTitle(this.midi);
+        const title = ptr ? this.adl.UTF8ToString(ptr) : "";
+        this.port.postMessage({ type: "musicTitle", title });
+        break;
+      }
+      case "getMusicCopyright": {
+        const ptr = this.adl._adl_metaMusicCopyright(this.midi);
+        const copyright = ptr ? this.adl.UTF8ToString(ptr) : "";
+        this.port.postMessage({ type: "musicCopyright", copyright });
+        break;
+      }
       case "play":
         if (this.adl._adl_atEnd(this.midi) !== 0) {
           this.adl._adl_positionRewind(this.midi);
