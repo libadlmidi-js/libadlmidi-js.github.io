@@ -369,12 +369,22 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 break;
             }
 
+            case 'getEmbeddedBanks': {
+                const banks = this.getEmbeddedBankList();
+                this.port.postMessage({ type: 'embeddedBanks', banks });
+                break;
+            }
+
             // MIDI file playback
             case 'loadMidi':
                 this.loadMidiData(msg.data);
                 break;
 
             case 'play':
+                // If at end, rewind first so play works as expected
+                if (this.adl._adl_atEnd(this.midi) !== 0) {
+                    this.adl._adl_positionRewind(this.midi);
+                }
                 this.playMode = 'file';
                 break;
 
@@ -445,6 +455,26 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
         }
     }
 
+    /**
+     * Get list of embedded banks with their names
+     * @returns {{id: number, name: string}[]}
+     */
+    getEmbeddedBankList() {
+        const count = this.adl._adl_getBanksCount();
+        const namesPtr = this.adl._adl_getBankNames();
+        const banks = [];
+
+        // namesPtr points to an array of char* pointers
+        for (let i = 0; i < count; i++) {
+            // Read the pointer at offset i (4 bytes per pointer in WASM32)
+            const strPtr = this.adl.getValue(namesPtr + i * 4, 'i32');
+            const name = strPtr ? this.adl.UTF8ToString(strPtr) : `Bank ${i}`;
+            banks.push({ id: i, name });
+        }
+
+        return banks;
+    }
+
     loadBank(arrayBuffer) {
         try {
             const data = new Uint8Array(arrayBuffer);
@@ -489,6 +519,13 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
             // Use adl_play for file playback mode, adl_generate for real-time
             if (this.playMode === 'file') {
                 this.adl._adl_play(this.midi, sampleCount, this.bufferPtr);
+
+                // When song ends, silence notes and switch to realtime mode
+                if (this.adl._adl_atEnd(this.midi) !== 0) {
+                    this.adl._adl_panic(this.midi);
+                    this.playMode = 'realtime';
+                    this.port.postMessage({ type: 'playbackEnded' });
+                }
             } else {
                 this.adl._adl_generate(this.midi, sampleCount, this.bufferPtr);
             }

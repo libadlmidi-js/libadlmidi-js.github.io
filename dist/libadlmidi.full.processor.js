@@ -2605,59 +2605,60 @@ async function createADLMIDI(moduleArg = {}) {
   Module["setValue"] = setValue;
   Module["getValue"] = getValue;
   Module["UTF8ToString"] = UTF8ToString;
-  var _adl_init, _adl_close, _adl_setNumChips, _adl_setBank, _adl_getBanksCount, _adl_reserveBanks, _adl_getBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_setPercMode, _adl_setHVibrato, _adl_setHTremolo, _adl_setScaleModulators, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_chipEmulatorName, _adl_switchEmulator, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+  var _adl_init, _adl_close, _adl_setNumChips, _adl_setBank, _adl_getBanksCount, _adl_getBankNames, _adl_reserveBanks, _adl_getBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_setPercMode, _adl_setHVibrato, _adl_setHTremolo, _adl_setScaleModulators, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_chipEmulatorName, _adl_switchEmulator, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
   function assignWasmExports(wasmExports2) {
     _adl_init = Module["_adl_init"] = wasmExports2["p"];
     _adl_close = Module["_adl_close"] = wasmExports2["q"];
     _adl_setNumChips = Module["_adl_setNumChips"] = wasmExports2["r"];
     _adl_setBank = Module["_adl_setBank"] = wasmExports2["s"];
     _adl_getBanksCount = Module["_adl_getBanksCount"] = wasmExports2["t"];
-    _adl_reserveBanks = Module["_adl_reserveBanks"] = wasmExports2["u"];
-    _adl_getBank = Module["_adl_getBank"] = wasmExports2["v"];
-    _adl_getInstrument = Module["_adl_getInstrument"] = wasmExports2["w"];
-    _adl_setInstrument = Module["_adl_setInstrument"] = wasmExports2["x"];
-    _adl_loadEmbeddedBank = Module["_adl_loadEmbeddedBank"] = wasmExports2["y"];
-    _adl_setNumFourOpsChn = Module["_adl_setNumFourOpsChn"] = wasmExports2["z"];
-    _adl_setPercMode = Module["_adl_setPercMode"] = wasmExports2["A"];
-    _adl_setHVibrato = Module["_adl_setHVibrato"] = wasmExports2["B"];
-    _adl_setHTremolo = Module["_adl_setHTremolo"] = wasmExports2["C"];
-    _adl_setScaleModulators = Module["_adl_setScaleModulators"] = wasmExports2["D"];
-    _adl_setLoopEnabled = Module["_adl_setLoopEnabled"] = wasmExports2["E"];
-    _adl_setLoopCount = Module["_adl_setLoopCount"] = wasmExports2["F"];
-    _adl_setSoftPanEnabled = Module["_adl_setSoftPanEnabled"] = wasmExports2["G"];
-    _adl_setVolumeRangeModel = Module["_adl_setVolumeRangeModel"] = wasmExports2["H"];
-    _adl_openBankFile = Module["_adl_openBankFile"] = wasmExports2["I"];
-    _adl_openBankData = Module["_adl_openBankData"] = wasmExports2["J"];
-    _adl_openData = Module["_adl_openData"] = wasmExports2["K"];
-    _adl_chipEmulatorName = Module["_adl_chipEmulatorName"] = wasmExports2["L"];
-    _adl_switchEmulator = Module["_adl_switchEmulator"] = wasmExports2["M"];
-    _adl_errorString = Module["_adl_errorString"] = wasmExports2["N"];
-    _adl_errorInfo = Module["_adl_errorInfo"] = wasmExports2["O"];
-    _adl_reset = Module["_adl_reset"] = wasmExports2["P"];
-    _adl_totalTimeLength = Module["_adl_totalTimeLength"] = wasmExports2["Q"];
-    _adl_positionTell = Module["_adl_positionTell"] = wasmExports2["R"];
-    _adl_positionSeek = Module["_adl_positionSeek"] = wasmExports2["S"];
-    _adl_positionRewind = Module["_adl_positionRewind"] = wasmExports2["T"];
-    _adl_setTempo = Module["_adl_setTempo"] = wasmExports2["U"];
-    _adl_play = Module["_adl_play"] = wasmExports2["V"];
-    _adl_playFormat = Module["_adl_playFormat"] = wasmExports2["W"];
-    _adl_generate = Module["_adl_generate"] = wasmExports2["X"];
-    _adl_generateFormat = Module["_adl_generateFormat"] = wasmExports2["Y"];
-    _adl_atEnd = Module["_adl_atEnd"] = wasmExports2["Z"];
-    _adl_panic = Module["_adl_panic"] = wasmExports2["_"];
-    _adl_rt_resetState = Module["_adl_rt_resetState"] = wasmExports2["$"];
-    _adl_rt_noteOn = Module["_adl_rt_noteOn"] = wasmExports2["aa"];
-    _adl_rt_noteOff = Module["_adl_rt_noteOff"] = wasmExports2["ba"];
-    _adl_rt_controllerChange = Module["_adl_rt_controllerChange"] = wasmExports2["ca"];
-    _adl_rt_patchChange = Module["_adl_rt_patchChange"] = wasmExports2["da"];
-    _adl_rt_pitchBend = Module["_adl_rt_pitchBend"] = wasmExports2["ea"];
-    _adl_rt_pitchBendML = Module["_adl_rt_pitchBendML"] = wasmExports2["fa"];
-    __emscripten_timeout = wasmExports2["ga"];
-    _malloc = Module["_malloc"] = wasmExports2["ha"];
-    _free = Module["_free"] = wasmExports2["ia"];
-    __emscripten_stack_restore = wasmExports2["ja"];
-    __emscripten_stack_alloc = wasmExports2["ka"];
-    _emscripten_stack_get_current = wasmExports2["la"];
+    _adl_getBankNames = Module["_adl_getBankNames"] = wasmExports2["u"];
+    _adl_reserveBanks = Module["_adl_reserveBanks"] = wasmExports2["v"];
+    _adl_getBank = Module["_adl_getBank"] = wasmExports2["w"];
+    _adl_getInstrument = Module["_adl_getInstrument"] = wasmExports2["x"];
+    _adl_setInstrument = Module["_adl_setInstrument"] = wasmExports2["y"];
+    _adl_loadEmbeddedBank = Module["_adl_loadEmbeddedBank"] = wasmExports2["z"];
+    _adl_setNumFourOpsChn = Module["_adl_setNumFourOpsChn"] = wasmExports2["A"];
+    _adl_setPercMode = Module["_adl_setPercMode"] = wasmExports2["B"];
+    _adl_setHVibrato = Module["_adl_setHVibrato"] = wasmExports2["C"];
+    _adl_setHTremolo = Module["_adl_setHTremolo"] = wasmExports2["D"];
+    _adl_setScaleModulators = Module["_adl_setScaleModulators"] = wasmExports2["E"];
+    _adl_setLoopEnabled = Module["_adl_setLoopEnabled"] = wasmExports2["F"];
+    _adl_setLoopCount = Module["_adl_setLoopCount"] = wasmExports2["G"];
+    _adl_setSoftPanEnabled = Module["_adl_setSoftPanEnabled"] = wasmExports2["H"];
+    _adl_setVolumeRangeModel = Module["_adl_setVolumeRangeModel"] = wasmExports2["I"];
+    _adl_openBankFile = Module["_adl_openBankFile"] = wasmExports2["J"];
+    _adl_openBankData = Module["_adl_openBankData"] = wasmExports2["K"];
+    _adl_openData = Module["_adl_openData"] = wasmExports2["L"];
+    _adl_chipEmulatorName = Module["_adl_chipEmulatorName"] = wasmExports2["M"];
+    _adl_switchEmulator = Module["_adl_switchEmulator"] = wasmExports2["N"];
+    _adl_errorString = Module["_adl_errorString"] = wasmExports2["O"];
+    _adl_errorInfo = Module["_adl_errorInfo"] = wasmExports2["P"];
+    _adl_reset = Module["_adl_reset"] = wasmExports2["Q"];
+    _adl_totalTimeLength = Module["_adl_totalTimeLength"] = wasmExports2["R"];
+    _adl_positionTell = Module["_adl_positionTell"] = wasmExports2["S"];
+    _adl_positionSeek = Module["_adl_positionSeek"] = wasmExports2["T"];
+    _adl_positionRewind = Module["_adl_positionRewind"] = wasmExports2["U"];
+    _adl_setTempo = Module["_adl_setTempo"] = wasmExports2["V"];
+    _adl_play = Module["_adl_play"] = wasmExports2["W"];
+    _adl_playFormat = Module["_adl_playFormat"] = wasmExports2["X"];
+    _adl_generate = Module["_adl_generate"] = wasmExports2["Y"];
+    _adl_generateFormat = Module["_adl_generateFormat"] = wasmExports2["Z"];
+    _adl_atEnd = Module["_adl_atEnd"] = wasmExports2["_"];
+    _adl_panic = Module["_adl_panic"] = wasmExports2["$"];
+    _adl_rt_resetState = Module["_adl_rt_resetState"] = wasmExports2["aa"];
+    _adl_rt_noteOn = Module["_adl_rt_noteOn"] = wasmExports2["ba"];
+    _adl_rt_noteOff = Module["_adl_rt_noteOff"] = wasmExports2["ca"];
+    _adl_rt_controllerChange = Module["_adl_rt_controllerChange"] = wasmExports2["da"];
+    _adl_rt_patchChange = Module["_adl_rt_patchChange"] = wasmExports2["ea"];
+    _adl_rt_pitchBend = Module["_adl_rt_pitchBend"] = wasmExports2["fa"];
+    _adl_rt_pitchBendML = Module["_adl_rt_pitchBendML"] = wasmExports2["ga"];
+    __emscripten_timeout = wasmExports2["ha"];
+    _malloc = Module["_malloc"] = wasmExports2["ia"];
+    _free = Module["_free"] = wasmExports2["ja"];
+    __emscripten_stack_restore = wasmExports2["ka"];
+    __emscripten_stack_alloc = wasmExports2["la"];
+    _emscripten_stack_get_current = wasmExports2["ma"];
     memory = wasmMemory = wasmExports2["n"];
     __indirect_function_table = wasmExports2["__indirect_function_table"];
   }
@@ -3098,11 +3099,19 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
         this.port.postMessage({ type: "emulatorName", name });
         break;
       }
+      case "getEmbeddedBanks": {
+        const banks = this.getEmbeddedBankList();
+        this.port.postMessage({ type: "embeddedBanks", banks });
+        break;
+      }
       // MIDI file playback
       case "loadMidi":
         this.loadMidiData(msg.data);
         break;
       case "play":
+        if (this.adl._adl_atEnd(this.midi) !== 0) {
+          this.adl._adl_positionRewind(this.midi);
+        }
         this.playMode = "file";
         break;
       case "stop":
@@ -3163,6 +3172,21 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
       });
     }
   }
+  /**
+   * Get list of embedded banks with their names
+   * @returns {{id: number, name: string}[]}
+   */
+  getEmbeddedBankList() {
+    const count = this.adl._adl_getBanksCount();
+    const namesPtr = this.adl._adl_getBankNames();
+    const banks = [];
+    for (let i = 0; i < count; i++) {
+      const strPtr = this.adl.getValue(namesPtr + i * 4, "i32");
+      const name = strPtr ? this.adl.UTF8ToString(strPtr) : `Bank ${i}`;
+      banks.push({ id: i, name });
+    }
+    return banks;
+  }
   loadBank(arrayBuffer) {
     try {
       const data = new Uint8Array(arrayBuffer);
@@ -3198,6 +3222,11 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
       const sampleCount = frames * 2;
       if (this.playMode === "file") {
         this.adl._adl_play(this.midi, sampleCount, this.bufferPtr);
+        if (this.adl._adl_atEnd(this.midi) !== 0) {
+          this.adl._adl_panic(this.midi);
+          this.playMode = "realtime";
+          this.port.postMessage({ type: "playbackEnded" });
+        }
       } else {
         this.adl._adl_generate(this.midi, sampleCount, this.bufferPtr);
       }

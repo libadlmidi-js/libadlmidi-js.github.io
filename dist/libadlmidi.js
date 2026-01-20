@@ -360,11 +360,144 @@ var AdlMidi = class {
     });
   }
   /**
+   * Get list of embedded banks available in this build
+   * Note: Slim builds have no embedded banks and will return an empty array
+   * @returns {Promise<{id: number, name: string}[]>} Array of bank info objects
+   * @example
+   * const banks = await synth.getEmbeddedBanks();
+   * banks.forEach(b => console.log(`${b.id}: ${b.name}`));
+   */
+  async getEmbeddedBanks() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "embeddedBanks",
+        /** @param {{banks: {id: number, name: string}[]}} msg */
+        (msg) => {
+          resolve(msg.banks);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getEmbeddedBanks" });
+    });
+  }
+  /**
    * Reset the synthesizer
    * @returns {void}
    */
   reset() {
     __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "reset" });
+  }
+  // ================== MIDI File Playback API ==================
+  /**
+   * Load a MIDI file for playback
+   * @param {ArrayBuffer} arrayBuffer - MIDI file data
+   * @returns {Promise<{duration: number}>} Resolves with file info when loaded
+   */
+  async loadMidi(arrayBuffer) {
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "midiLoaded",
+        /** @param {{success: boolean, duration: number, error?: string}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve({ duration: msg.duration });
+          } else {
+            reject(new Error(msg.error || "Failed to load MIDI data"));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "loadMidi", data: arrayBuffer });
+    });
+  }
+  /**
+   * Start or resume MIDI file playback
+   * @returns {void}
+   */
+  play() {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "play" });
+  }
+  /**
+   * Stop MIDI file playback and rewind to beginning
+   * @returns {void}
+   */
+  stop() {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "stop" });
+  }
+  /**
+   * Seek to a position in the MIDI file
+   * @param {number} seconds - Position in seconds
+   * @returns {void}
+   */
+  seek(seconds) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "seek", position: seconds });
+  }
+  /**
+   * Enable or disable looping for MIDI file playback
+   * @param {boolean} enabled - Whether to loop
+   * @returns {void}
+   */
+  setLoop(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setLoop", enabled });
+  }
+  /**
+   * Set the playback tempo multiplier
+   * @param {number} tempo - Tempo multiplier (1.0 = normal speed)
+   * @returns {void}
+   */
+  setTempo(tempo) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setTempo", tempo });
+  }
+  /**
+   * Get the current playback state
+   * @returns {Promise<{position: number, duration: number, atEnd: boolean, playMode: string}>}
+   */
+  async getPlaybackState() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "state",
+        /** @param {{position: number, duration: number, atEnd: boolean, playMode: string}} msg */
+        (msg) => {
+          resolve({
+            position: msg.position,
+            duration: msg.duration,
+            atEnd: msg.atEnd,
+            playMode: msg.playMode
+          });
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getState" });
+    });
+  }
+  /**
+   * Register a handler for playback state updates
+   * Useful for progress tracking during playback
+   * @param {function({position: number, duration: number, atEnd: boolean, playMode: string}): void} handler
+   * @returns {function(): void} Unsubscribe function
+   */
+  onPlaybackState(handler) {
+    if (!__privateGet(this, _messageHandlers).has("state")) {
+      __privateGet(this, _messageHandlers).set("state", /* @__PURE__ */ new Set());
+    }
+    __privateGet(this, _messageHandlers).get("state")?.add(handler);
+    return () => {
+      __privateGet(this, _messageHandlers).get("state")?.delete(handler);
+    };
+  }
+  /**
+   * Register a handler for when playback ends naturally
+   * @param {function(): void} handler
+   * @returns {function(): void} Unsubscribe function
+   */
+  onPlaybackEnded(handler) {
+    if (!__privateGet(this, _messageHandlers).has("playbackEnded")) {
+      __privateGet(this, _messageHandlers).set("playbackEnded", /* @__PURE__ */ new Set());
+    }
+    __privateGet(this, _messageHandlers).get("playbackEnded")?.add(handler);
+    return () => {
+      __privateGet(this, _messageHandlers).get("playbackEnded")?.delete(handler);
+    };
   }
   /**
    * Close the synthesizer and release resources
