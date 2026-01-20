@@ -321,6 +321,92 @@ var AdlMidi = class {
     __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setNumChips", chips });
   }
   /**
+   * Set the number of 4-operator channels
+   * @param {number} channels - Number of channels (-1 for auto)
+   */
+  setNumFourOpChannels(channels) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setNumFourOpChannels", channels });
+  }
+  /**
+   * Get the number of 4-operator channels
+   * @returns {Promise<number>}
+   */
+  async getNumFourOpChannels() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "numFourOpChannels",
+        /** @param {{channels: number}} msg */
+        (msg) => {
+          resolve(msg.channels);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getNumFourOpChannels" });
+    });
+  }
+  /**
+   * Enable/disable scaling of modulators by volume
+   * @param {boolean} enabled
+   */
+  setScaleModulators(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setScaleModulators", enabled });
+  }
+  /**
+   * Enable/disable full-range brightness
+   * @param {boolean} enabled
+   */
+  setFullRangeBrightness(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setFullRangeBrightness", enabled });
+  }
+  /**
+   * Enable/disable automatic arpeggio
+   * @param {boolean} enabled
+   */
+  setAutoArpeggio(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setAutoArpeggio", enabled });
+  }
+  /**
+   * Get automatic arpeggio state
+   * @returns {Promise<boolean>}
+   */
+  async getAutoArpeggio() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "autoArpeggio",
+        /** @param {{enabled: boolean}} msg */
+        (msg) => {
+          resolve(msg.enabled);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getAutoArpeggio" });
+    });
+  }
+  /**
+   * Set channel allocation mode
+   * @param {number} mode - Mode ID
+   */
+  setChannelAllocMode(mode) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setChannelAllocMode", mode });
+  }
+  /**
+   * Get channel allocation mode
+   * @returns {Promise<number>}
+   */
+  async getChannelAllocMode() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "channelAllocMode",
+        /** @param {{mode: number}} msg */
+        (msg) => {
+          resolve(msg.mode);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getChannelAllocMode" });
+    });
+  }
+  /**
    * Set the volume model
    * @param {number} model - Volume model number
    */

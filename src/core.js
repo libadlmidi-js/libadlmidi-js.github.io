@@ -11,6 +11,7 @@
 import {
     SIZEOF_ADL_INSTRUMENT,
     SIZEOF_ADL_BANK_ID,
+    SIZEOF_ADL_BANK,
     decodeInstrument,
     encodeInstrument,
 } from './utils/struct.js';
@@ -210,6 +211,87 @@ export class AdlMidiCore {
     setNumChips(count) {
         this._ensurePlayer();
         return this._module._adl_setNumChips(this._player, count) === 0;
+    }
+
+    /**
+     * Set the number of 4-operator channels.
+     *
+     * @param {number} count - Number of channels (-1 for auto)
+     * @returns {boolean} True if successful
+     */
+    setNumFourOpChannels(count) {
+        this._ensurePlayer();
+        return this._module._adl_setNumFourOpsChn(this._player, count) === 0;
+    }
+
+    /**
+     * Get the number of 4-operator channels.
+     *
+     * @returns {number} Count of channels
+     */
+    getNumFourOpChannels() {
+        this._ensurePlayer();
+        return this._module._adl_getNumFourOpsChn(this._player);
+    }
+
+    /**
+     * Enable/disable scaling of modulators by volume.
+     *
+     * @param {boolean} enabled
+     */
+    setScaleModulators(enabled) {
+        this._ensurePlayer();
+        this._module._adl_setScaleModulators(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Enable/disable full-range brightness (0-127).
+     *
+     * @param {boolean} enabled
+     */
+    setFullRangeBrightness(enabled) {
+        this._ensurePlayer();
+        this._module._adl_setFullRangeBrightness(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Enable/disable automatic arpeggio.
+     *
+     * @param {boolean} enabled
+     */
+    setAutoArpeggio(enabled) {
+        this._ensurePlayer();
+        this._module._adl_setAutoArpeggio(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Get automatic arpeggio state.
+     *
+     * @returns {boolean}
+     */
+    getAutoArpeggio() {
+        this._ensurePlayer();
+        return this._module._adl_getAutoArpeggio(this._player) !== 0;
+    }
+
+    /**
+     * Set channel allocation mode.
+     *
+     * @param {number} mode - Mode ID
+     */
+    setChannelAllocMode(mode) {
+        this._ensurePlayer();
+        this._module._adl_setChannelAllocMode(this._player, mode);
+    }
+
+    /**
+     * Get channel allocation mode.
+     *
+     * @returns {number} Mode ID
+     */
+    getChannelAllocMode() {
+        this._ensurePlayer();
+        return this._module._adl_getChannelAllocMode(this._player);
     }
 
     /**
@@ -611,24 +693,34 @@ export class AdlMidiCore {
         this._module.HEAPU8[bankIdPtr + 1] = bankId.msb || 0;
         this._module.HEAPU8[bankIdPtr + 2] = bankId.lsb || 0;
 
-        // Allocate instrument struct
-        const instPtr = this._module._malloc(SIZEOF_ADL_INSTRUMENT);
+        // Allocate bank struct
+        const bankPtr = this._module._malloc(SIZEOF_ADL_BANK);
 
-        const result = this._module._adl_getInstrument(
-            this._player,
-            bankIdPtr,
-            program,
-            instPtr
-        );
+        // Get bank (create if needed)
+        const bankResult = this._module._adl_getBank(this._player, bankIdPtr, 1, bankPtr);
 
         let instrument = null;
-        if (result === 0) {
-            const bytes = this._module.HEAPU8.slice(instPtr, instPtr + SIZEOF_ADL_INSTRUMENT);
-            instrument = decodeInstrument(bytes);
+        if (bankResult === 0) {
+            // Allocate instrument struct
+            const instPtr = this._module._malloc(SIZEOF_ADL_INSTRUMENT);
+
+            const result = this._module._adl_getInstrument(
+                this._player,
+                bankPtr,
+                program,
+                instPtr
+            );
+
+            if (result === 0) {
+                const bytes = this._module.HEAPU8.slice(instPtr, instPtr + SIZEOF_ADL_INSTRUMENT);
+                instrument = decodeInstrument(bytes);
+            }
+
+            this._module._free(instPtr);
         }
 
         this._module._free(bankIdPtr);
-        this._module._free(instPtr);
+        this._module._free(bankPtr);
 
         return instrument;
     }
@@ -653,22 +745,34 @@ export class AdlMidiCore {
         this._module.HEAPU8[bankIdPtr + 1] = bankId.msb || 0;
         this._module.HEAPU8[bankIdPtr + 2] = bankId.lsb || 0;
 
-        // Encode and write instrument
-        const bytes = encodeInstrument(instrument);
-        const instPtr = this._module._malloc(SIZEOF_ADL_INSTRUMENT);
-        this._module.HEAPU8.set(bytes, instPtr);
+        // Allocate bank struct
+        const bankPtr = this._module._malloc(SIZEOF_ADL_BANK);
 
-        const result = this._module._adl_setInstrument(
-            this._player,
-            bankIdPtr,
-            program,
-            instPtr
-        );
+        // Get bank (create if needed)
+        const bankResult = this._module._adl_getBank(this._player, bankIdPtr, 1, bankPtr);
+
+        let success = false;
+        if (bankResult === 0) {
+            // Encode and write instrument
+            const bytes = encodeInstrument(instrument);
+            const instPtr = this._module._malloc(SIZEOF_ADL_INSTRUMENT);
+            this._module.HEAPU8.set(bytes, instPtr);
+
+            const result = this._module._adl_setInstrument(
+                this._player,
+                bankPtr,
+                program,
+                instPtr
+            );
+
+            success = result === 0;
+            this._module._free(instPtr);
+        }
 
         this._module._free(bankIdPtr);
-        this._module._free(instPtr);
+        this._module._free(bankPtr);
 
-        return result === 0;
+        return success;
     }
 
     // =========================================================================

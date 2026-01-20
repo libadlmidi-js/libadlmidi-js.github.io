@@ -287,7 +287,7 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 break;
 
             case 'pitchBend':
-                this.adl._adl_rt_pitchBendML(this.midi, msg.channel, msg.lsb, msg.msb);
+                this.adl._adl_rt_pitchBendML(this.midi, msg.channel, msg.msb, msg.lsb);
                 break;
 
             case 'controlChange':
@@ -357,6 +357,38 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
 
             case 'setNumChips':
                 this.adl._adl_setNumChips(this.midi, msg.chips);
+                break;
+
+            case 'setNumFourOpChannels':
+                this.adl._adl_setNumFourOpsChn(this.midi, msg.channels);
+                break;
+
+            case 'getNumFourOpChannels':
+                this.port.postMessage({ type: 'numFourOpChannels', channels: this.adl._adl_getNumFourOpsChn(this.midi) });
+                break;
+
+            case 'setScaleModulators':
+                this.adl._adl_setScaleModulators(this.midi, msg.enabled ? 1 : 0);
+                break;
+
+            case 'setFullRangeBrightness':
+                this.adl._adl_setFullRangeBrightness(this.midi, msg.enabled ? 1 : 0);
+                break;
+
+            case 'setAutoArpeggio':
+                this.adl._adl_setAutoArpeggio(this.midi, msg.enabled ? 1 : 0);
+                break;
+
+            case 'getAutoArpeggio':
+                this.port.postMessage({ type: 'autoArpeggio', enabled: this.adl._adl_getAutoArpeggio(this.midi) !== 0 });
+                break;
+
+            case 'setChannelAllocMode':
+                this.adl._adl_setChannelAllocMode(this.midi, msg.mode);
+                break;
+
+            case 'getChannelAllocMode':
+                this.port.postMessage({ type: 'channelAllocMode', mode: this.adl._adl_getChannelAllocMode(this.midi) });
                 break;
 
             case 'setVolumeModel':
