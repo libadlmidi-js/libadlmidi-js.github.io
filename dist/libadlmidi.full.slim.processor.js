@@ -2385,10 +2385,11 @@ async function createADLMIDI(moduleArg = {}) {
       return;
     }
     try {
-      func();
-      maybeExit();
+      return func();
     } catch (e) {
       handleException(e);
+    } finally {
+      maybeExit();
     }
   };
   var _emscripten_get_now = () => performance.now();
