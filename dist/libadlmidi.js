@@ -75,13 +75,12 @@ var AdlMidi = class {
     if (this.ctx.state === "suspended") {
       await this.ctx.resume();
     }
-    let wasmBinary = null;
     const effectiveWasmUrl = wasmUrl || processorUrl.replace(".processor.js", ".core.wasm");
     const response = await fetch(effectiveWasmUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch WASM: ${response.status}`);
     }
-    wasmBinary = await response.arrayBuffer();
+    const wasmBinary = await response.arrayBuffer();
     await this.ctx.audioWorklet.addModule(processorUrl);
     this.node = new AudioWorkletNode(this.ctx, "adl-midi-processor", {
       processorOptions: {
