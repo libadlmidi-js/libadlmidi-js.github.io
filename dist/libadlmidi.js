@@ -30,7 +30,9 @@ var Emulator = Object.freeze({
   /** Nuked OPL2 LLE - Transistor-level emulation */
   NUKED_OPL2_LLE: 9,
   /** Nuked OPL3 LLE - Transistor-level emulation */
-  NUKED_OPL3_LLE: 10
+  NUKED_OPL3_LLE: 10,
+  /** Nuked OPL2 Lite - Lightweight OPL2 emulation for AdLib-era music */
+  NUKED_OPL2_LITE: 11
 });
 var _ready, _messageHandlers, _AdlMidi_instances, handleMessage_fn, onceMessage_fn, send_fn;
 var AdlMidi = class {
