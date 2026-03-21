@@ -72,11 +72,14 @@ export class AdlMidiCore {
 }
 
 // Re-export struct utilities for convenience
-export { 
-    encodeInstrument, 
-    decodeInstrument, 
+export {
+    encodeInstrument,
+    decodeInstrument,
     defaultInstrument,
     encodeOperator,
     decodeOperator,
-    defaultOperator 
+    defaultOperator
 } from '../utils/struct.js';
+
+// Re-export enums
+export { Emulator, TrackOption } from '../utils/constants.js';

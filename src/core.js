@@ -16,6 +16,9 @@ import {
     encodeInstrument,
 } from './utils/struct.js';
 
+import { Emulator, TrackOption } from './utils/constants.js';
+export { Emulator, TrackOption };
+
 /**
  * Low-level OPL3 synthesis interface.
  *
@@ -243,6 +246,16 @@ export class AdlMidiCore {
     }
 
     /**
+     * Get the number of 4-operator channels obtained.
+     *
+     * @returns {number} Count of channels obtained
+     */
+    getNumFourOpChannelsObtained() {
+        this._ensurePlayer();
+        return this._module._adl_getNumFourOpsChnObtained(this._player);
+    }
+
+    /**
      * Enable/disable scaling of modulators by volume.
      *
      * @param {boolean} enabled
@@ -307,7 +320,7 @@ export class AdlMidiCore {
      *
      * @param {boolean} enabled
      */
-    setSoftPan(enabled) {
+    setSoftPanEnabled(enabled) {
         this._ensurePlayer();
         this._module._adl_setSoftPanEnabled(this._player, enabled ? 1 : 0);
     }
@@ -323,6 +336,16 @@ export class AdlMidiCore {
     }
 
     /**
+     * Get deep vibrato state.
+     *
+     * @returns {boolean}
+     */
+    getDeepVibrato() {
+        this._ensurePlayer();
+        return this._module._adl_getHVibrato(this._player) !== 0;
+    }
+
+    /**
      * Enable/disable deep tremolo.
      *
      * @param {boolean} enabled
@@ -330,6 +353,16 @@ export class AdlMidiCore {
     setDeepTremolo(enabled) {
         this._ensurePlayer();
         this._module._adl_setHTremolo(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Get deep tremolo state.
+     *
+     * @returns {boolean}
+     */
+    getDeepTremolo() {
+        this._ensurePlayer();
+        return this._module._adl_getHTremolo(this._player) !== 0;
     }
 
     /**
@@ -352,6 +385,27 @@ export class AdlMidiCore {
         this._ensurePlayer();
         const ptr = this._module._adl_chipEmulatorName(this._player);
         return this._module.UTF8ToString(ptr);
+    }
+
+    /**
+     * Get the last global error string (static, no player needed).
+     *
+     * @returns {string} Error string or empty string
+     */
+    getErrorString() {
+        const ptr = this._module._adl_errorString();
+        return ptr ? this._module.UTF8ToString(ptr) : '';
+    }
+
+    /**
+     * Get the last error info for this player instance.
+     *
+     * @returns {string} Error info string or empty string
+     */
+    getErrorInfo() {
+        this._ensurePlayer();
+        const ptr = this._module._adl_errorInfo(this._player);
+        return ptr ? this._module.UTF8ToString(ptr) : '';
     }
 
     /**
@@ -403,7 +457,7 @@ export class AdlMidiCore {
      *
      * @returns {number}
      */
-    getVolumeModel() {
+    getVolumeRangeModel() {
         this._ensurePlayer();
         return this._module._adl_getVolumeRangeModel(this._player);
     }
@@ -413,7 +467,7 @@ export class AdlMidiCore {
      *
      * @param {number} model - Volume model type
      */
-    setVolumeModel(model) {
+    setVolumeRangeModel(model) {
         this._ensurePlayer();
         this._module._adl_setVolumeRangeModel(this._player, model);
     }
@@ -626,6 +680,38 @@ export class AdlMidiCore {
     }
 
     /**
+     * Get the number of track titles in the loaded MIDI file.
+     *
+     * @returns {number} Number of track titles
+     */
+    getTrackTitleCount() {
+        this._ensurePlayer();
+        return this._module._adl_metaTrackTitleCount(this._player);
+    }
+
+    /**
+     * Get a track title by index.
+     *
+     * @param {number} index - Track title index
+     * @returns {string} Track title or empty string
+     */
+    getTrackTitle(index) {
+        this._ensurePlayer();
+        const ptr = this._module._adl_metaTrackTitle(this._player, index);
+        return ptr ? this._module.UTF8ToString(ptr) : '';
+    }
+
+    /**
+     * Get the number of MIDI markers in the loaded file.
+     *
+     * @returns {number} Number of markers
+     */
+    getMarkerCount() {
+        this._ensurePlayer();
+        return this._module._adl_metaMarkerCount(this._player);
+    }
+
+    /**
      * Play MIDI file and generate audio.
      *
      * @param {number} frames - Number of stereo frames to generate
@@ -709,9 +795,105 @@ export class AdlMidiCore {
      *
      * @param {boolean} enabled
      */
-    setLooping(enabled) {
+    setLoopEnabled(enabled) {
         this._ensurePlayer();
         this._module._adl_setLoopEnabled(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Set the number of loop repetitions.
+     *
+     * @param {number} count - Loop count (-1 = infinite, 0 = no loops, 1+ = number of loops)
+     */
+    setLoopCount(count) {
+        this._ensurePlayer();
+        this._module._adl_setLoopCount(this._player, count);
+    }
+
+    /**
+     * Enable/disable loop hooks only mode.
+     *
+     * @param {boolean} enabled
+     */
+    setLoopHooksOnly(enabled) {
+        this._ensurePlayer();
+        this._module._adl_setLoopHooksOnly(this._player, enabled ? 1 : 0);
+    }
+
+    /**
+     * Get the loop start time in seconds.
+     *
+     * @returns {number} Loop start time in seconds
+     */
+    getLoopStartTime() {
+        this._ensurePlayer();
+        return this._module._adl_loopStartTime(this._player);
+    }
+
+    /**
+     * Get the loop end time in seconds.
+     *
+     * @returns {number} Loop end time in seconds
+     */
+    getLoopEndTime() {
+        this._ensurePlayer();
+        return this._module._adl_loopEndTime(this._player);
+    }
+
+    /**
+     * Select a song number for multi-song MIDI files.
+     *
+     * @param {number} num - Song number (0-based)
+     */
+    selectSongNum(num) {
+        this._ensurePlayer();
+        this._module._adl_selectSongNum(this._player, num);
+    }
+
+    /**
+     * Get the number of songs in the loaded MIDI file.
+     *
+     * @returns {number} Number of songs
+     */
+    getSongsCount() {
+        this._ensurePlayer();
+        return this._module._adl_getSongsCount(this._player);
+    }
+
+    /**
+     * Get the number of tracks in the loaded MIDI file.
+     *
+     * @returns {number} Number of tracks
+     */
+    getTrackCount() {
+        this._ensurePlayer();
+        return this._module._adl_trackCount(this._player);
+    }
+
+    /**
+     * Set track options (enable, mute, or solo).
+     * Use the TrackOption enum: TrackOption.ON (1), TrackOption.OFF (2), TrackOption.SOLO (3).
+     * Note: Passing 0 is a silent no-op that returns true without changing state.
+     *
+     * @param {number} track - Track index
+     * @param {number} options - Track option from TrackOption enum
+     * @returns {boolean} True if successful
+     */
+    setTrackOptions(track, options) {
+        this._ensurePlayer();
+        return this._module._adl_setTrackOptions(this._player, track, options) === 0;
+    }
+
+    /**
+     * Enable or disable a MIDI channel.
+     *
+     * @param {number} channel - MIDI channel (0-15)
+     * @param {boolean} enabled - Whether to enable the channel
+     * @returns {boolean} True if successful
+     */
+    setChannelEnabled(channel, enabled) {
+        this._ensurePlayer();
+        return this._module._adl_setChannelEnabled(this._player, channel, enabled ? 1 : 0) === 0;
     }
 
     /**
@@ -722,6 +904,126 @@ export class AdlMidiCore {
     setTempo(tempo) {
         this._ensurePlayer();
         this._module._adl_setTempo(this._player, tempo);
+    }
+
+    // =========================================================================
+    // Bank Management
+    // =========================================================================
+
+    /**
+     * Reserve a number of banks.
+     *
+     * @param {number} count - Number of banks to reserve
+     * @returns {boolean} True if successful
+     */
+    reserveBanks(count) {
+        this._ensurePlayer();
+        // adl_reserveBanks returns the resulting capacity (>= 0), not 0 on success
+        return this._module._adl_reserveBanks(this._player, count) >= 0;
+    }
+
+    /**
+     * Get the bank ID for a given bank identifier.
+     *
+     * @param {Object} bankId - Bank identifier
+     * @param {boolean|number} bankId.percussive - True/1 for percussion, false/0 for melodic
+     * @param {number} bankId.msb - Bank MSB
+     * @param {number} bankId.lsb - Bank LSB
+     * @returns {{percussive: number, msb: number, lsb: number}|null} Bank ID or null if not found
+     */
+    getBankId(bankId) {
+        this._ensurePlayer();
+        const bankIdPtr = this._module._malloc(SIZEOF_ADL_BANK_ID);
+        this._module.HEAPU8[bankIdPtr] = bankId.percussive ? 1 : 0;
+        this._module.HEAPU8[bankIdPtr + 1] = bankId.msb || 0;
+        this._module.HEAPU8[bankIdPtr + 2] = bankId.lsb || 0;
+
+        const bankPtr = this._module._malloc(SIZEOF_ADL_BANK);
+        const bankResult = this._module._adl_getBank(this._player, bankIdPtr, 0, bankPtr);
+
+        let result = null;
+        if (bankResult === 0) {
+            const outIdPtr = this._module._malloc(SIZEOF_ADL_BANK_ID);
+            const idResult = this._module._adl_getBankId(this._player, bankPtr, outIdPtr);
+            if (idResult === 0) {
+                result = {
+                    percussive: this._module.HEAPU8[outIdPtr],
+                    msb: this._module.HEAPU8[outIdPtr + 1],
+                    lsb: this._module.HEAPU8[outIdPtr + 2],
+                };
+            }
+            this._module._free(outIdPtr);
+        }
+        this._module._free(bankIdPtr);
+        this._module._free(bankPtr);
+        return result;
+    }
+
+    /**
+     * Remove a bank by its identifier.
+     *
+     * @param {Object} bankId - Bank identifier
+     * @param {boolean|number} bankId.percussive - True/1 for percussion, false/0 for melodic
+     * @param {number} bankId.msb - Bank MSB
+     * @param {number} bankId.lsb - Bank LSB
+     * @returns {boolean} True if successfully removed
+     */
+    removeBank(bankId) {
+        this._ensurePlayer();
+        const bankIdPtr = this._module._malloc(SIZEOF_ADL_BANK_ID);
+        this._module.HEAPU8[bankIdPtr] = bankId.percussive ? 1 : 0;
+        this._module.HEAPU8[bankIdPtr + 1] = bankId.msb || 0;
+        this._module.HEAPU8[bankIdPtr + 2] = bankId.lsb || 0;
+
+        const bankPtr = this._module._malloc(SIZEOF_ADL_BANK);
+        const bankResult = this._module._adl_getBank(this._player, bankIdPtr, 0, bankPtr);
+
+        let success = false;
+        if (bankResult === 0) {
+            success = this._module._adl_removeBank(this._player, bankPtr) === 0;
+        }
+
+        this._module._free(bankIdPtr);
+        this._module._free(bankPtr);
+        return success;
+    }
+
+    /**
+     * Load an embedded bank into a custom bank slot.
+     *
+     * @param {Object} bankId - Target bank identifier
+     * @param {boolean|number} bankId.percussive - True/1 for percussion, false/0 for melodic
+     * @param {number} bankId.msb - Bank MSB
+     * @param {number} bankId.lsb - Bank LSB
+     * @param {number} num - Embedded bank number to load
+     * @returns {boolean} True if successful
+     */
+    loadEmbeddedBank(bankId, num) {
+        this._ensurePlayer();
+        const bankIdPtr = this._module._malloc(SIZEOF_ADL_BANK_ID);
+        this._module.HEAPU8[bankIdPtr] = bankId.percussive ? 1 : 0;
+        this._module.HEAPU8[bankIdPtr + 1] = bankId.msb || 0;
+        this._module.HEAPU8[bankIdPtr + 2] = bankId.lsb || 0;
+
+        const bankPtr = this._module._malloc(SIZEOF_ADL_BANK);
+
+        // Check if bank already exists (flag=0) before creating
+        const existed = this._module._adl_getBank(this._player, bankIdPtr, 0, bankPtr) === 0;
+        // Get or create the bank slot (flag=1)
+        const bankResult = existed ? 0 : this._module._adl_getBank(this._player, bankIdPtr, 1, bankPtr);
+
+        let success = false;
+        if (bankResult === 0) {
+            success = this._module._adl_loadEmbeddedBank(this._player, bankPtr, num) === 0;
+            // Clean up: if we created a new slot but load failed, remove it
+            if (!success && !existed) {
+                this._module._adl_removeBank(this._player, bankPtr);
+            }
+        }
+
+        this._module._free(bankIdPtr);
+        this._module._free(bankPtr);
+        return success;
     }
 
     // =========================================================================
@@ -827,6 +1129,52 @@ export class AdlMidiCore {
         this._module._free(bankPtr);
 
         return success;
+    }
+
+    // =========================================================================
+    // Real-time SysEx
+    // =========================================================================
+
+    /**
+     * Send a System Exclusive (SysEx) message.
+     *
+     * @param {Uint8Array|ArrayBuffer} data - SysEx message data
+     * @returns {boolean} True if successful
+     */
+    systemExclusive(data) {
+        this._ensurePlayer();
+        const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+        const ptr = this._module._malloc(bytes.length);
+        this._module.HEAPU8.set(bytes, ptr);
+        const result = this._module._adl_rt_systemExclusive(this._player, ptr, bytes.length);
+        this._module._free(ptr);
+        // adl_rt_systemExclusive returns 1 when processed, 0 when rejected
+        return result !== 0;
+    }
+
+    // =========================================================================
+    // Debug / Diagnostics
+    // =========================================================================
+
+    /**
+     * Describe the current state of all channels (debug utility).
+     *
+     * @returns {{text: string, attr: Uint8Array}} Channel state text and raw per-channel attribute bytes
+     */
+    describeChannels() {
+        this._ensurePlayer();
+        // Size buffers based on actual chip count (~23 channels per OPL3 chip)
+        const numChips = this._module._adl_getNumChipsObtained(this._player);
+        const size = Math.max(256, (numChips + 1) * 23);
+        const textPtr = this._module._malloc(size);
+        const attrPtr = this._module._malloc(size);
+        this._module._adl_describeChannels(this._player, textPtr, attrPtr, size);
+        const text = this._module.UTF8ToString(textPtr);
+        // attr contains raw per-channel bytes; one byte per channel char in text
+        const attr = this._module.HEAPU8.slice(attrPtr, attrPtr + text.length);
+        this._module._free(textPtr);
+        this._module._free(attrPtr);
+        return { text, attr };
     }
 
     // =========================================================================

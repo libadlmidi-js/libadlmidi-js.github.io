@@ -1,19 +1,22 @@
 /**
  * libADLMIDI-JS - Main Thread Interface
- * 
+ *
  * High-level API for real-time OPL3 FM synthesis in the browser.
- * 
+ *
  * @example
  * ```javascript
  * import { AdlMidi } from 'libadlmidi-js';
- * 
+ *
  * const synth = new AdlMidi();
  * await synth.init('/path/to/processor.js');
- * 
+ *
  * synth.noteOn(0, 60, 100);  // Middle C on channel 0
  * synth.noteOff(0, 60);
  * ```
  */
+
+import { Emulator, TrackOption } from './utils/constants.js';
+export { Emulator, TrackOption };
 
 /**
  * Bank identifier for instrument access
@@ -73,45 +76,13 @@
  * @property {boolean} [deepTremolo] - Enable deep tremolo
  */
 
-/**
- * Available OPL2/OPL3 emulator cores.
- * Use with switchEmulator() to change the synthesis engine at runtime.
- * Note: Only emulators compiled into the current profile are available.
- * @readonly
- * @enum {number}
- */
-export const Emulator = Object.freeze({
-    /** Nuked OPL3 v1.8 - Most accurate, higher CPU usage */
-    NUKED: 0,
-    /** Nuked OPL3 v1.7.4 - Slightly older version */
-    NUKED_174: 1,
-    /** DosBox OPL3 - Good accuracy, lower CPU usage */
-    DOSBOX: 2,
-    /** Opal - Reality Adlib Tracker emulator */
-    OPAL: 3,
-    /** Java OPL3 - Port of emu8950 */
-    JAVA: 4,
-    /** ESFMu - ESFM chip emulator */
-    ESFMU: 5,
-    /** MAME OPL2 */
-    MAME_OPL2: 6,
-    /** YMFM OPL2 */
-    YMFM_OPL2: 7,
-    /** YMFM OPL3 */
-    YMFM_OPL3: 8,
-    /** Nuked OPL2 LLE - Transistor-level emulation */
-    NUKED_OPL2_LLE: 9,
-    /** Nuked OPL3 LLE - Transistor-level emulation */
-    NUKED_OPL3_LLE: 10,
-    /** Nuked OPL2 Lite - Lightweight OPL2 emulation for AdLib-era music */
-    NUKED_OPL2_LITE: 11,
-});
-
 export class AdlMidi {
     /** @type {boolean} */
     #ready = false;
     /** @type {Map<string, Set<Function>>} */
     #messageHandlers = new Map();
+    /** @type {number} */
+    #nextRequestId = 0;
 
     /**
      * Create a new AdlMidi instance
@@ -229,6 +200,29 @@ export class AdlMidi {
         };
 
         this.#messageHandlers.get(type)?.add(wrappedHandler);
+    }
+
+    /**
+     * Register a one-time handler correlated by request ID.
+     * Allows concurrent operations of the same type without reply misrouting.
+     * @param {string} type - Message type
+     * @param {number} reqId - Request ID to match against
+     * @param {Function} handler - Handler function
+     */
+    #onceCorrelatedMessage(type, reqId, handler) {
+        if (!this.#messageHandlers.has(type)) {
+            this.#messageHandlers.set(type, new Set());
+        }
+
+        /** @param {{reqId?: number}} msg */
+        const filteredHandler = (msg) => {
+            if (msg.reqId === reqId) {
+                this.#messageHandlers.get(type)?.delete(filteredHandler);
+                handler(msg);
+            }
+        };
+
+        this.#messageHandlers.get(type)?.add(filteredHandler);
     }
 
     /**
@@ -369,7 +363,7 @@ export class AdlMidi {
      * @param {ArrayBuffer} arrayBuffer - Bank file data
      * @returns {Promise<void>}
      */
-    async loadBank(arrayBuffer) {
+    async loadBankData(arrayBuffer) {
         return new Promise((resolve, reject) => {
             this.#onceMessage('bankLoaded', /** @param {{success: boolean, error?: string}} msg */(msg) => {
                 if (msg.success) {
@@ -379,7 +373,7 @@ export class AdlMidi {
                 }
             });
 
-            this.#send({ type: 'loadBank', data: arrayBuffer });
+            this.#send({ type: 'loadBankData', data: arrayBuffer });
         });
     }
 
@@ -473,6 +467,19 @@ export class AdlMidi {
     }
 
     /**
+     * Get the number of 4-operator channels obtained
+     * @returns {Promise<number>}
+     */
+    async getNumFourOpChannelsObtained() {
+        return new Promise((resolve) => {
+            this.#onceMessage('numFourOpChannelsObtained', /** @param {{channels: number}} msg */(msg) => {
+                resolve(msg.channels);
+            });
+            this.#send({ type: 'getNumFourOpChannelsObtained' });
+        });
+    }
+
+    /**
      * Enable/disable scaling of modulators by volume
      * @param {boolean} enabled
      */
@@ -531,35 +538,61 @@ export class AdlMidi {
     }
 
     /**
-     * Set the volume model
+     * Set the volume range model
      * @param {number} model - Volume model number
      */
-    setVolumeModel(model) {
-        this.#send({ type: 'setVolumeModel', model });
+    setVolumeRangeModel(model) {
+        this.#send({ type: 'setVolumeRangeModel', model });
     }
 
     /**
-     * Enable/disable rhythm mode (percussion)
+     * Enable/disable soft stereo panning
      * @param {boolean} enabled
      */
-    setPercussionMode(enabled) {
-        this.#send({ type: 'setPercMode', enabled });
+    setSoftPanEnabled(enabled) {
+        this.#send({ type: 'setSoftPanEnabled', enabled });
     }
 
     /**
      * Enable/disable deep vibrato
      * @param {boolean} enabled
      */
-    setVibrato(enabled) {
-        this.#send({ type: 'setVibrato', enabled });
+    setDeepVibrato(enabled) {
+        this.#send({ type: 'setDeepVibrato', enabled });
+    }
+
+    /**
+     * Get deep vibrato state
+     * @returns {Promise<boolean>}
+     */
+    async getDeepVibrato() {
+        return new Promise((resolve) => {
+            this.#onceMessage('deepVibrato', /** @param {{enabled: boolean}} msg */(msg) => {
+                resolve(msg.enabled);
+            });
+            this.#send({ type: 'getDeepVibrato' });
+        });
     }
 
     /**
      * Enable/disable deep tremolo
      * @param {boolean} enabled
      */
-    setTremolo(enabled) {
-        this.#send({ type: 'setTremolo', enabled });
+    setDeepTremolo(enabled) {
+        this.#send({ type: 'setDeepTremolo', enabled });
+    }
+
+    /**
+     * Get deep tremolo state
+     * @returns {Promise<boolean>}
+     */
+    async getDeepTremolo() {
+        return new Promise((resolve) => {
+            this.#onceMessage('deepTremolo', /** @param {{enabled: boolean}} msg */(msg) => {
+                resolve(msg.enabled);
+            });
+            this.#send({ type: 'getDeepTremolo' });
+        });
     }
 
     /**
@@ -577,7 +610,7 @@ export class AdlMidi {
      * - nuked profile: NUKED only
      * - dosbox profile: DOSBOX only  
      * - light profile: NUKED, DOSBOX
-     * - full profile: NUKED, DOSBOX, OPAL, JAVA, ESFMU, YMFM_OPL2, YMFM_OPL3
+     * - full profile: NUKED, DOSBOX, OPAL, JAVA, ESFMu, YMFM_OPL2, YMFM_OPL3
      * 
      * @param {number} emulator - Emulator ID from the Emulator enum
      * @returns {Promise<void>} Resolves when emulator is switched, rejects if unavailable
@@ -611,6 +644,19 @@ export class AdlMidi {
                 resolve(msg.name);
             });
             this.#send({ type: 'getEmulatorName' });
+        });
+    }
+
+    /**
+     * Get the last error info for the player instance
+     * @returns {Promise<string>}
+     */
+    async getErrorInfo() {
+        return new Promise((resolve) => {
+            this.#onceMessage('errorInfo', /** @param {{info: string}} msg */(msg) => {
+                resolve(msg.info);
+            });
+            this.#send({ type: 'getErrorInfo' });
         });
     }
 
@@ -670,12 +716,12 @@ export class AdlMidi {
      * Get the volume range model
      * @returns {Promise<number>}
      */
-    async getVolumeModel() {
+    async getVolumeRangeModel() {
         return new Promise((resolve) => {
-            this.#onceMessage('volumeModel', /** @param {{model: number}} msg */(msg) => {
+            this.#onceMessage('volumeRangeModel', /** @param {{model: number}} msg */(msg) => {
                 resolve(msg.model);
             });
-            this.#send({ type: 'getVolumeModel' });
+            this.#send({ type: 'getVolumeRangeModel' });
         });
     }
 
@@ -693,6 +739,119 @@ export class AdlMidi {
                 resolve(msg.banks);
             });
             this.#send({ type: 'getEmbeddedBanks' });
+        });
+    }
+
+    // ================== Bank Management API ==================
+
+    /**
+     * Reserve a number of banks
+     * @param {number} count - Number of banks to reserve
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async reserveBanks(count) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('banksReserved', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error('Failed to reserve banks'));
+                }
+            });
+            this.#send({ type: 'reserveBanks', count, reqId });
+        });
+    }
+
+    /**
+     * Get the bank ID for a given bank identifier
+     * @param {BankId} bankId - Bank identifier
+     * @returns {Promise<{percussive: number, msb: number, lsb: number}|null>} Bank ID or null if not found
+     */
+    async getBankId(bankId) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve) => {
+            this.#onceCorrelatedMessage('bankId', reqId, /** @param {{id: {percussive: number, msb: number, lsb: number}|null}} msg */(msg) => {
+                resolve(msg.id);
+            });
+            this.#send({ type: 'getBankId', bankId, reqId });
+        });
+    }
+
+    /**
+     * Remove a bank by its identifier
+     * @param {BankId} bankId - Bank identifier
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async removeBank(bankId) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('bankRemoved', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error('Failed to remove bank'));
+                }
+            });
+            this.#send({ type: 'removeBank', bankId, reqId });
+        });
+    }
+
+    /**
+     * Load an embedded bank into a custom bank slot
+     * @param {BankId} bankId - Target bank identifier
+     * @param {number} num - Embedded bank number to load
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async loadEmbeddedBank(bankId, num) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('embeddedBankLoaded', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error('Failed to load embedded bank'));
+                }
+            });
+            this.#send({ type: 'loadEmbeddedBank', bankId, num, reqId });
+        });
+    }
+
+    // ================== SysEx API ==================
+
+    /**
+     * Send a System Exclusive (SysEx) message
+     * @param {Uint8Array|ArrayBuffer} data - SysEx message data
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async systemExclusive(data) {
+        const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('systemExclusiveSent', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error('Failed to send system exclusive message'));
+                }
+            });
+            this.#send({ type: 'systemExclusive', data: Array.from(bytes), reqId });
+        });
+    }
+
+    // ================== Debug / Diagnostics API ==================
+
+    /**
+     * Describe the current state of all channels (debug utility)
+     * @returns {Promise<{text: string, attr: Uint8Array}>} Channel state text and raw per-channel attribute bytes
+     */
+    async describeChannels() {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve) => {
+            this.#onceCorrelatedMessage('channelsDescribed', reqId, /** @param {{text: string, attr: number[]}} msg */(msg) => {
+                resolve({ text: msg.text, attr: new Uint8Array(msg.attr) });
+            });
+            this.#send({ type: 'describeChannels', reqId });
         });
     }
 
@@ -752,6 +911,47 @@ export class AdlMidi {
     }
 
     /**
+     * Get the number of track titles in the loaded MIDI file
+     * @returns {Promise<number>}
+     */
+    async getTrackTitleCount() {
+        return new Promise((resolve) => {
+            this.#onceMessage('trackTitleCount', /** @param {{count: number}} msg */(msg) => {
+                resolve(msg.count);
+            });
+            this.#send({ type: 'getTrackTitleCount' });
+        });
+    }
+
+    /**
+     * Get a track title by index
+     * @param {number} index - Track title index
+     * @returns {Promise<string>}
+     */
+    async getTrackTitle(index) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve) => {
+            this.#onceCorrelatedMessage('trackTitle', reqId, /** @param {{title: string}} msg */(msg) => {
+                resolve(msg.title);
+            });
+            this.#send({ type: 'getTrackTitle', index, reqId });
+        });
+    }
+
+    /**
+     * Get the number of MIDI markers in the loaded file
+     * @returns {Promise<number>}
+     */
+    async getMarkerCount() {
+        return new Promise((resolve) => {
+            this.#onceMessage('markerCount', /** @param {{count: number}} msg */(msg) => {
+                resolve(msg.count);
+            });
+            this.#send({ type: 'getMarkerCount' });
+        });
+    }
+
+    /**
      * Start or resume MIDI file playback
      * @returns {void}
      */
@@ -781,8 +981,126 @@ export class AdlMidi {
      * @param {boolean} enabled - Whether to loop
      * @returns {void}
      */
-    setLoop(enabled) {
-        this.#send({ type: 'setLoop', enabled });
+    setLoopEnabled(enabled) {
+        this.#send({ type: 'setLoopEnabled', enabled });
+    }
+
+    /**
+     * Set the number of loop repetitions
+     * @param {number} count - Loop count (-1 = infinite, 0 = no loops, 1+ = number of loops)
+     */
+    setLoopCount(count) {
+        this.#send({ type: 'setLoopCount', count });
+    }
+
+    /**
+     * Enable/disable loop hooks only mode
+     * @param {boolean} enabled
+     */
+    setLoopHooksOnly(enabled) {
+        this.#send({ type: 'setLoopHooksOnly', enabled });
+    }
+
+    /**
+     * Get the loop start time in seconds
+     * @returns {Promise<number>}
+     */
+    async getLoopStartTime() {
+        return new Promise((resolve) => {
+            this.#onceMessage('loopStartTime', /** @param {{time: number}} msg */(msg) => {
+                resolve(msg.time);
+            });
+            this.#send({ type: 'getLoopStartTime' });
+        });
+    }
+
+    /**
+     * Get the loop end time in seconds
+     * @returns {Promise<number>}
+     */
+    async getLoopEndTime() {
+        return new Promise((resolve) => {
+            this.#onceMessage('loopEndTime', /** @param {{time: number}} msg */(msg) => {
+                resolve(msg.time);
+            });
+            this.#send({ type: 'getLoopEndTime' });
+        });
+    }
+
+    /**
+     * Select a song number for multi-song MIDI files
+     * @param {number} num - Song number (0-based)
+     */
+    selectSongNum(num) {
+        this.#send({ type: 'selectSongNum', num });
+    }
+
+    /**
+     * Get the number of songs in the loaded MIDI file
+     * @returns {Promise<number>}
+     */
+    async getSongsCount() {
+        return new Promise((resolve) => {
+            this.#onceMessage('songsCount', /** @param {{count: number}} msg */(msg) => {
+                resolve(msg.count);
+            });
+            this.#send({ type: 'getSongsCount' });
+        });
+    }
+
+    /**
+     * Get the number of tracks in the loaded MIDI file
+     * @returns {Promise<number>}
+     */
+    async getTrackCount() {
+        return new Promise((resolve) => {
+            this.#onceMessage('trackCount', /** @param {{count: number}} msg */(msg) => {
+                resolve(msg.count);
+            });
+            this.#send({ type: 'getTrackCount' });
+        });
+    }
+
+    /**
+     * Set track options (enable, mute, or solo)
+     * Use the TrackOption enum: TrackOption.ON (1), TrackOption.OFF (2), TrackOption.SOLO (3).
+     * Note: Passing 0 is a silent no-op that resolves without changing state.
+     * @param {number} track - Track index
+     * @param {number} options - Track option from TrackOption enum
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async setTrackOptions(track, options) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('trackOptionsSet', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error(`Failed to set track options for track ${track}`));
+                }
+            });
+            this.#send({ type: 'setTrackOptions', track, options, reqId });
+        });
+    }
+
+    /**
+     * Enable or disable a MIDI channel
+     * @param {number} channel - MIDI channel (0-15)
+     * @param {boolean} enabled - Whether to enable the channel
+     * @returns {Promise<void>} Resolves on success, rejects on failure
+     */
+    async setChannelEnabled(channel, enabled) {
+        const reqId = this.#nextRequestId++;
+        return new Promise((resolve, reject) => {
+            this.#onceCorrelatedMessage('channelEnabledSet', reqId, /** @param {{success: boolean}} msg */(msg) => {
+                if (msg.success) {
+                    resolve();
+                } else {
+                    reject(new Error(`Failed to set channel ${channel} enabled state`));
+                }
+            });
+            this.#send({ type: 'setChannelEnabled', channel, enabled, reqId });
+        });
     }
 
     /**

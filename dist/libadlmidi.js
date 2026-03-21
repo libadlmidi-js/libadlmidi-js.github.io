@@ -6,8 +6,16 @@ var __privateGet = (obj, member, getter) => (__accessCheck(obj, member, "read fr
 var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
 var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 var __privateMethod = (obj, member, method) => (__accessCheck(obj, member, "access private method"), method);
+var __privateWrapper = (obj, member, setter, getter) => ({
+  set _(value) {
+    __privateSet(obj, member, value, setter);
+  },
+  get _() {
+    return __privateGet(obj, member, getter);
+  }
+});
 
-// src/libadlmidi.js
+// src/utils/constants.js
 var Emulator = Object.freeze({
   /** Nuked OPL3 v1.8 - Most accurate, higher CPU usage */
   NUKED: 0,
@@ -20,7 +28,7 @@ var Emulator = Object.freeze({
   /** Java OPL3 - Port of emu8950 */
   JAVA: 4,
   /** ESFMu - ESFM chip emulator */
-  ESFMU: 5,
+  ESFMu: 5,
   /** MAME OPL2 */
   MAME_OPL2: 6,
   /** YMFM OPL2 */
@@ -34,7 +42,17 @@ var Emulator = Object.freeze({
   /** Nuked OPL2 Lite - Lightweight OPL2 emulation for AdLib-era music */
   NUKED_OPL2_LITE: 11
 });
-var _ready, _messageHandlers, _AdlMidi_instances, handleMessage_fn, onceMessage_fn, send_fn;
+var TrackOption = Object.freeze({
+  /** Enable the track (default state) */
+  ON: 1,
+  /** Mute/disable the track */
+  OFF: 2,
+  /** Solo the track (mute all others) */
+  SOLO: 3
+});
+
+// src/libadlmidi.js
+var _ready, _messageHandlers, _nextRequestId, _AdlMidi_instances, handleMessage_fn, onceMessage_fn, onceCorrelatedMessage_fn, send_fn;
 var AdlMidi = class {
   /**
    * Create a new AdlMidi instance
@@ -46,6 +64,8 @@ var AdlMidi = class {
     __privateAdd(this, _ready, false);
     /** @type {Map<string, Set<Function>>} */
     __privateAdd(this, _messageHandlers, /* @__PURE__ */ new Map());
+    /** @type {number} */
+    __privateAdd(this, _nextRequestId, 0);
     this.ctx = context || null;
     this.node = null;
   }
@@ -228,7 +248,7 @@ var AdlMidi = class {
    * @param {ArrayBuffer} arrayBuffer - Bank file data
    * @returns {Promise<void>}
    */
-  async loadBank(arrayBuffer) {
+  async loadBankData(arrayBuffer) {
     return new Promise((resolve, reject) => {
       __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
         this,
@@ -242,7 +262,7 @@ var AdlMidi = class {
           }
         }
       );
-      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "loadBank", data: arrayBuffer });
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "loadBankData", data: arrayBuffer });
     });
   }
   /**
@@ -346,6 +366,23 @@ var AdlMidi = class {
     });
   }
   /**
+   * Get the number of 4-operator channels obtained
+   * @returns {Promise<number>}
+   */
+  async getNumFourOpChannelsObtained() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "numFourOpChannelsObtained",
+        /** @param {{channels: number}} msg */
+        (msg) => {
+          resolve(msg.channels);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getNumFourOpChannelsObtained" });
+    });
+  }
+  /**
    * Enable/disable scaling of modulators by volume
    * @param {boolean} enabled
    */
@@ -408,32 +445,66 @@ var AdlMidi = class {
     });
   }
   /**
-   * Set the volume model
+   * Set the volume range model
    * @param {number} model - Volume model number
    */
-  setVolumeModel(model) {
-    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setVolumeModel", model });
+  setVolumeRangeModel(model) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setVolumeRangeModel", model });
   }
   /**
-   * Enable/disable rhythm mode (percussion)
+   * Enable/disable soft stereo panning
    * @param {boolean} enabled
    */
-  setPercussionMode(enabled) {
-    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setPercMode", enabled });
+  setSoftPanEnabled(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setSoftPanEnabled", enabled });
   }
   /**
    * Enable/disable deep vibrato
    * @param {boolean} enabled
    */
-  setVibrato(enabled) {
-    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setVibrato", enabled });
+  setDeepVibrato(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setDeepVibrato", enabled });
+  }
+  /**
+   * Get deep vibrato state
+   * @returns {Promise<boolean>}
+   */
+  async getDeepVibrato() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "deepVibrato",
+        /** @param {{enabled: boolean}} msg */
+        (msg) => {
+          resolve(msg.enabled);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getDeepVibrato" });
+    });
   }
   /**
    * Enable/disable deep tremolo
    * @param {boolean} enabled
    */
-  setTremolo(enabled) {
-    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setTremolo", enabled });
+  setDeepTremolo(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setDeepTremolo", enabled });
+  }
+  /**
+   * Get deep tremolo state
+   * @returns {Promise<boolean>}
+   */
+  async getDeepTremolo() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "deepTremolo",
+        /** @param {{enabled: boolean}} msg */
+        (msg) => {
+          resolve(msg.enabled);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getDeepTremolo" });
+    });
   }
   /**
    * Run emulator with PCM rate to reduce CPU usage
@@ -449,7 +520,7 @@ var AdlMidi = class {
    * - nuked profile: NUKED only
    * - dosbox profile: DOSBOX only  
    * - light profile: NUKED, DOSBOX
-   * - full profile: NUKED, DOSBOX, OPAL, JAVA, ESFMU, YMFM_OPL2, YMFM_OPL3
+   * - full profile: NUKED, DOSBOX, OPAL, JAVA, ESFMu, YMFM_OPL2, YMFM_OPL3
    * 
    * @param {number} emulator - Emulator ID from the Emulator enum
    * @returns {Promise<void>} Resolves when emulator is switched, rejects if unavailable
@@ -492,6 +563,23 @@ var AdlMidi = class {
         }
       );
       __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getEmulatorName" });
+    });
+  }
+  /**
+   * Get the last error info for the player instance
+   * @returns {Promise<string>}
+   */
+  async getErrorInfo() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "errorInfo",
+        /** @param {{info: string}} msg */
+        (msg) => {
+          resolve(msg.info);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getErrorInfo" });
     });
   }
   /**
@@ -566,17 +654,17 @@ var AdlMidi = class {
    * Get the volume range model
    * @returns {Promise<number>}
    */
-  async getVolumeModel() {
+  async getVolumeRangeModel() {
     return new Promise((resolve) => {
       __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
         this,
-        "volumeModel",
+        "volumeRangeModel",
         /** @param {{model: number}} msg */
         (msg) => {
           resolve(msg.model);
         }
       );
-      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getVolumeModel" });
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getVolumeRangeModel" });
     });
   }
   /**
@@ -598,6 +686,146 @@ var AdlMidi = class {
         }
       );
       __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getEmbeddedBanks" });
+    });
+  }
+  // ================== Bank Management API ==================
+  /**
+   * Reserve a number of banks
+   * @param {number} count - Number of banks to reserve
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async reserveBanks(count) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "banksReserved",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error("Failed to reserve banks"));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "reserveBanks", count, reqId });
+    });
+  }
+  /**
+   * Get the bank ID for a given bank identifier
+   * @param {BankId} bankId - Bank identifier
+   * @returns {Promise<{percussive: number, msb: number, lsb: number}|null>} Bank ID or null if not found
+   */
+  async getBankId(bankId) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "bankId",
+        reqId,
+        /** @param {{id: {percussive: number, msb: number, lsb: number}|null}} msg */
+        (msg) => {
+          resolve(msg.id);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getBankId", bankId, reqId });
+    });
+  }
+  /**
+   * Remove a bank by its identifier
+   * @param {BankId} bankId - Bank identifier
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async removeBank(bankId) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "bankRemoved",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error("Failed to remove bank"));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "removeBank", bankId, reqId });
+    });
+  }
+  /**
+   * Load an embedded bank into a custom bank slot
+   * @param {BankId} bankId - Target bank identifier
+   * @param {number} num - Embedded bank number to load
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async loadEmbeddedBank(bankId, num) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "embeddedBankLoaded",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error("Failed to load embedded bank"));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "loadEmbeddedBank", bankId, num, reqId });
+    });
+  }
+  // ================== SysEx API ==================
+  /**
+   * Send a System Exclusive (SysEx) message
+   * @param {Uint8Array|ArrayBuffer} data - SysEx message data
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async systemExclusive(data) {
+    const bytes = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "systemExclusiveSent",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error("Failed to send system exclusive message"));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "systemExclusive", data: Array.from(bytes), reqId });
+    });
+  }
+  // ================== Debug / Diagnostics API ==================
+  /**
+   * Describe the current state of all channels (debug utility)
+   * @returns {Promise<{text: string, attr: Uint8Array}>} Channel state text and raw per-channel attribute bytes
+   */
+  async describeChannels() {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "channelsDescribed",
+        reqId,
+        /** @param {{text: string, attr: number[]}} msg */
+        (msg) => {
+          resolve({ text: msg.text, attr: new Uint8Array(msg.attr) });
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "describeChannels", reqId });
     });
   }
   /**
@@ -665,6 +893,60 @@ var AdlMidi = class {
     });
   }
   /**
+   * Get the number of track titles in the loaded MIDI file
+   * @returns {Promise<number>}
+   */
+  async getTrackTitleCount() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "trackTitleCount",
+        /** @param {{count: number}} msg */
+        (msg) => {
+          resolve(msg.count);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getTrackTitleCount" });
+    });
+  }
+  /**
+   * Get a track title by index
+   * @param {number} index - Track title index
+   * @returns {Promise<string>}
+   */
+  async getTrackTitle(index) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "trackTitle",
+        reqId,
+        /** @param {{title: string}} msg */
+        (msg) => {
+          resolve(msg.title);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getTrackTitle", index, reqId });
+    });
+  }
+  /**
+   * Get the number of MIDI markers in the loaded file
+   * @returns {Promise<number>}
+   */
+  async getMarkerCount() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "markerCount",
+        /** @param {{count: number}} msg */
+        (msg) => {
+          resolve(msg.count);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getMarkerCount" });
+    });
+  }
+  /**
    * Start or resume MIDI file playback
    * @returns {void}
    */
@@ -691,8 +973,149 @@ var AdlMidi = class {
    * @param {boolean} enabled - Whether to loop
    * @returns {void}
    */
-  setLoop(enabled) {
-    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setLoop", enabled });
+  setLoopEnabled(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setLoopEnabled", enabled });
+  }
+  /**
+   * Set the number of loop repetitions
+   * @param {number} count - Loop count (-1 = infinite, 0 = no loops, 1+ = number of loops)
+   */
+  setLoopCount(count) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setLoopCount", count });
+  }
+  /**
+   * Enable/disable loop hooks only mode
+   * @param {boolean} enabled
+   */
+  setLoopHooksOnly(enabled) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setLoopHooksOnly", enabled });
+  }
+  /**
+   * Get the loop start time in seconds
+   * @returns {Promise<number>}
+   */
+  async getLoopStartTime() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "loopStartTime",
+        /** @param {{time: number}} msg */
+        (msg) => {
+          resolve(msg.time);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getLoopStartTime" });
+    });
+  }
+  /**
+   * Get the loop end time in seconds
+   * @returns {Promise<number>}
+   */
+  async getLoopEndTime() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "loopEndTime",
+        /** @param {{time: number}} msg */
+        (msg) => {
+          resolve(msg.time);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getLoopEndTime" });
+    });
+  }
+  /**
+   * Select a song number for multi-song MIDI files
+   * @param {number} num - Song number (0-based)
+   */
+  selectSongNum(num) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "selectSongNum", num });
+  }
+  /**
+   * Get the number of songs in the loaded MIDI file
+   * @returns {Promise<number>}
+   */
+  async getSongsCount() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "songsCount",
+        /** @param {{count: number}} msg */
+        (msg) => {
+          resolve(msg.count);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getSongsCount" });
+    });
+  }
+  /**
+   * Get the number of tracks in the loaded MIDI file
+   * @returns {Promise<number>}
+   */
+  async getTrackCount() {
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceMessage_fn).call(
+        this,
+        "trackCount",
+        /** @param {{count: number}} msg */
+        (msg) => {
+          resolve(msg.count);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getTrackCount" });
+    });
+  }
+  /**
+   * Set track options (enable, mute, or solo)
+   * Use the TrackOption enum: TrackOption.ON (1), TrackOption.OFF (2), TrackOption.SOLO (3).
+   * Note: Passing 0 is a silent no-op that resolves without changing state.
+   * @param {number} track - Track index
+   * @param {number} options - Track option from TrackOption enum
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async setTrackOptions(track, options) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "trackOptionsSet",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error(`Failed to set track options for track ${track}`));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setTrackOptions", track, options, reqId });
+    });
+  }
+  /**
+   * Enable or disable a MIDI channel
+   * @param {number} channel - MIDI channel (0-15)
+   * @param {boolean} enabled - Whether to enable the channel
+   * @returns {Promise<void>} Resolves on success, rejects on failure
+   */
+  async setChannelEnabled(channel, enabled) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "channelEnabledSet",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error(`Failed to set channel ${channel} enabled state`));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "setChannelEnabled", channel, enabled, reqId });
+    });
   }
   /**
    * Set the playback tempo multiplier
@@ -785,6 +1208,7 @@ var AdlMidi = class {
 };
 _ready = new WeakMap();
 _messageHandlers = new WeakMap();
+_nextRequestId = new WeakMap();
 _AdlMidi_instances = new WeakSet();
 /**
  * Internal message handler
@@ -815,6 +1239,25 @@ onceMessage_fn = function(type, handler) {
   __privateGet(this, _messageHandlers).get(type)?.add(wrappedHandler);
 };
 /**
+ * Register a one-time handler correlated by request ID.
+ * Allows concurrent operations of the same type without reply misrouting.
+ * @param {string} type - Message type
+ * @param {number} reqId - Request ID to match against
+ * @param {Function} handler - Handler function
+ */
+onceCorrelatedMessage_fn = function(type, reqId, handler) {
+  if (!__privateGet(this, _messageHandlers).has(type)) {
+    __privateGet(this, _messageHandlers).set(type, /* @__PURE__ */ new Set());
+  }
+  const filteredHandler = (msg) => {
+    if (msg.reqId === reqId) {
+      __privateGet(this, _messageHandlers).get(type)?.delete(filteredHandler);
+      handler(msg);
+    }
+  };
+  __privateGet(this, _messageHandlers).get(type)?.add(filteredHandler);
+};
+/**
  * Send a message to the processor
  * @param {Object} msg - Message to send
  */
@@ -827,6 +1270,7 @@ var libadlmidi_default = AdlMidi;
 export {
   AdlMidi,
   Emulator,
+  TrackOption,
   libadlmidi_default as default
 };
 //# sourceMappingURL=libadlmidi.js.map

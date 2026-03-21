@@ -333,8 +333,8 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.port.postMessage({ type: 'configured' });
                 break;
 
-            case 'loadBank':
-                this.loadBank(msg.data);
+            case 'loadBankData':
+                this.loadBankData(msg.data);
                 break;
 
             case 'setBank': {
@@ -367,6 +367,10 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.port.postMessage({ type: 'numFourOpChannels', channels: this.adl._adl_getNumFourOpsChn(this.midi) });
                 break;
 
+            case 'getNumFourOpChannelsObtained':
+                this.port.postMessage({ type: 'numFourOpChannelsObtained', channels: this.adl._adl_getNumFourOpsChnObtained(this.midi) });
+                break;
+
             case 'setScaleModulators':
                 this.adl._adl_setScaleModulators(this.midi, msg.enabled ? 1 : 0);
                 break;
@@ -391,20 +395,28 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.port.postMessage({ type: 'channelAllocMode', mode: this.adl._adl_getChannelAllocMode(this.midi) });
                 break;
 
-            case 'setVolumeModel':
+            case 'setVolumeRangeModel':
                 this.adl._adl_setVolumeRangeModel(this.midi, msg.model);
                 break;
 
-            case 'setPercMode':
-                this.adl._adl_setPercMode(this.midi, msg.enabled ? 1 : 0);
-                break;
-
-            case 'setVibrato':
+            case 'setDeepVibrato':
                 this.adl._adl_setHVibrato(this.midi, msg.enabled ? 1 : 0);
                 break;
 
-            case 'setTremolo':
+            case 'getDeepVibrato':
+                this.port.postMessage({ type: 'deepVibrato', enabled: this.adl._adl_getHVibrato(this.midi) !== 0 });
+                break;
+
+            case 'setDeepTremolo':
                 this.adl._adl_setHTremolo(this.midi, msg.enabled ? 1 : 0);
+                break;
+
+            case 'getDeepTremolo':
+                this.port.postMessage({ type: 'deepTremolo', enabled: this.adl._adl_getHTremolo(this.midi) !== 0 });
+                break;
+
+            case 'setSoftPanEnabled':
+                this.adl._adl_setSoftPanEnabled(this.midi, msg.enabled ? 1 : 0);
                 break;
 
             case 'setRunAtPcmRate':
@@ -422,6 +434,13 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 const namePtr = this.adl._adl_chipEmulatorName(this.midi);
                 const name = namePtr ? this.adl.UTF8ToString(namePtr) : 'Unknown';
                 this.port.postMessage({ type: 'emulatorName', name });
+                break;
+            }
+
+            case 'getErrorInfo': {
+                const ptr = this.adl._adl_errorInfo(this.midi);
+                const info = ptr ? this.adl.UTF8ToString(ptr) : '';
+                this.port.postMessage({ type: 'errorInfo', info });
                 break;
             }
 
@@ -451,8 +470,8 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.port.postMessage({ type: 'numChipsObtained', chips: this.adl._adl_getNumChipsObtained(this.midi) });
                 break;
 
-            case 'getVolumeModel':
-                this.port.postMessage({ type: 'volumeModel', model: this.adl._adl_getVolumeRangeModel(this.midi) });
+            case 'getVolumeRangeModel':
+                this.port.postMessage({ type: 'volumeRangeModel', model: this.adl._adl_getVolumeRangeModel(this.midi) });
                 break;
 
             case 'getEmbeddedBanks': {
@@ -480,6 +499,21 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 break;
             }
 
+            case 'getTrackTitleCount':
+                this.port.postMessage({ type: 'trackTitleCount', count: this.adl._adl_metaTrackTitleCount(this.midi) });
+                break;
+
+            case 'getTrackTitle': {
+                const ptr = this.adl._adl_metaTrackTitle(this.midi, msg.index);
+                const title = ptr ? this.adl.UTF8ToString(ptr) : '';
+                this.port.postMessage({ type: 'trackTitle', title, index: msg.index, reqId: msg.reqId });
+                break;
+            }
+
+            case 'getMarkerCount':
+                this.port.postMessage({ type: 'markerCount', count: this.adl._adl_metaMarkerCount(this.midi) });
+                break;
+
             case 'play':
                 // If at end, rewind first so play works as expected
                 if (this.adl._adl_atEnd(this.midi) !== 0) {
@@ -498,9 +532,49 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.adl._adl_positionSeek(this.midi, msg.position);
                 break;
 
-            case 'setLoop':
+            case 'setLoopEnabled':
                 this.adl._adl_setLoopEnabled(this.midi, msg.enabled ? 1 : 0);
                 break;
+
+            case 'setLoopCount':
+                this.adl._adl_setLoopCount(this.midi, msg.count);
+                break;
+
+            case 'setLoopHooksOnly':
+                this.adl._adl_setLoopHooksOnly(this.midi, msg.enabled ? 1 : 0);
+                break;
+
+            case 'getLoopStartTime':
+                this.port.postMessage({ type: 'loopStartTime', time: this.adl._adl_loopStartTime(this.midi) });
+                break;
+
+            case 'getLoopEndTime':
+                this.port.postMessage({ type: 'loopEndTime', time: this.adl._adl_loopEndTime(this.midi) });
+                break;
+
+            case 'selectSongNum':
+                this.adl._adl_selectSongNum(this.midi, msg.num);
+                break;
+
+            case 'getSongsCount':
+                this.port.postMessage({ type: 'songsCount', count: this.adl._adl_getSongsCount(this.midi) });
+                break;
+
+            case 'getTrackCount':
+                this.port.postMessage({ type: 'trackCount', count: this.adl._adl_trackCount(this.midi) });
+                break;
+
+            case 'setTrackOptions': {
+                const result = this.adl._adl_setTrackOptions(this.midi, msg.track, msg.options);
+                this.port.postMessage({ type: 'trackOptionsSet', success: result === 0, track: msg.track, reqId: msg.reqId });
+                break;
+            }
+
+            case 'setChannelEnabled': {
+                const result = this.adl._adl_setChannelEnabled(this.midi, msg.channel, msg.enabled ? 1 : 0);
+                this.port.postMessage({ type: 'channelEnabledSet', success: result === 0, channel: msg.channel, reqId: msg.reqId });
+                break;
+            }
 
             case 'setTempo':
                 this.adl._adl_setTempo(this.midi, msg.tempo);
@@ -520,6 +594,124 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
                 this.adl._adl_reset(this.midi);
                 this.playMode = 'realtime';
                 break;
+
+            // ================== Bank Management ==================
+
+            case 'reserveBanks': {
+                // adl_reserveBanks returns the resulting capacity (>= 0), not 0 on success
+                const result = this.adl._adl_reserveBanks(this.midi, msg.count);
+                this.port.postMessage({ type: 'banksReserved', success: result >= 0, reqId: msg.reqId });
+                break;
+            }
+
+            case 'getBankId': {
+                const bankIdPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK_ID);
+                this.adl.HEAPU8[bankIdPtr] = msg.bankId.percussive ? 1 : 0;
+                this.adl.HEAPU8[bankIdPtr + 1] = msg.bankId.msb || 0;
+                this.adl.HEAPU8[bankIdPtr + 2] = msg.bankId.lsb || 0;
+
+                const bankPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK);
+                const bankResult = this.adl._adl_getBank(this.midi, bankIdPtr, 0, bankPtr);
+
+                let id = null;
+                if (bankResult === 0) {
+                    const outIdPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK_ID);
+                    const idResult = this.adl._adl_getBankId(this.midi, bankPtr, outIdPtr);
+                    if (idResult === 0) {
+                        id = {
+                            percussive: this.adl.HEAPU8[outIdPtr],
+                            msb: this.adl.HEAPU8[outIdPtr + 1],
+                            lsb: this.adl.HEAPU8[outIdPtr + 2],
+                        };
+                    }
+                    this.adl._free(outIdPtr);
+                }
+                this.adl._free(bankIdPtr);
+                this.adl._free(bankPtr);
+                // Echo bankId for concurrent request correlation
+                this.port.postMessage({ type: 'bankId', id, bankId: msg.bankId, reqId: msg.reqId });
+                break;
+            }
+
+            case 'removeBank': {
+                const bankIdPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK_ID);
+                this.adl.HEAPU8[bankIdPtr] = msg.bankId.percussive ? 1 : 0;
+                this.adl.HEAPU8[bankIdPtr + 1] = msg.bankId.msb || 0;
+                this.adl.HEAPU8[bankIdPtr + 2] = msg.bankId.lsb || 0;
+
+                const bankPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK);
+                const bankResult = this.adl._adl_getBank(this.midi, bankIdPtr, 0, bankPtr);
+
+                let success = false;
+                if (bankResult === 0) {
+                    success = this.adl._adl_removeBank(this.midi, bankPtr) === 0;
+                }
+
+                this.adl._free(bankIdPtr);
+                this.adl._free(bankPtr);
+                // Echo bankId for concurrent request correlation
+                this.port.postMessage({ type: 'bankRemoved', success, bankId: msg.bankId, reqId: msg.reqId });
+                break;
+            }
+
+            case 'loadEmbeddedBank': {
+                const bankIdPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK_ID);
+                this.adl.HEAPU8[bankIdPtr] = msg.bankId.percussive ? 1 : 0;
+                this.adl.HEAPU8[bankIdPtr + 1] = msg.bankId.msb || 0;
+                this.adl.HEAPU8[bankIdPtr + 2] = msg.bankId.lsb || 0;
+
+                const bankPtr = this.adl._malloc(AdlMidiProcessor.SIZEOF_ADL_BANK);
+
+                // Check if bank already exists before creating
+                const existed = this.adl._adl_getBank(this.midi, bankIdPtr, 0, bankPtr) === 0;
+                const bankResult = existed ? 0 : this.adl._adl_getBank(this.midi, bankIdPtr, 1, bankPtr);
+
+                let success = false;
+                if (bankResult === 0) {
+                    success = this.adl._adl_loadEmbeddedBank(this.midi, bankPtr, msg.num) === 0;
+                    // Clean up: if we created a new slot but load failed, remove it
+                    if (!success && !existed) {
+                        this.adl._adl_removeBank(this.midi, bankPtr);
+                    }
+                }
+
+                this.adl._free(bankIdPtr);
+                this.adl._free(bankPtr);
+                // Echo bankId for concurrent request correlation
+                this.port.postMessage({ type: 'embeddedBankLoaded', success, bankId: msg.bankId, reqId: msg.reqId });
+                break;
+            }
+
+            // ================== SysEx ==================
+
+            case 'systemExclusive': {
+                const bytes = new Uint8Array(msg.data);
+                const ptr = this.adl._malloc(bytes.length);
+                this.adl.HEAPU8.set(bytes, ptr);
+                const result = this.adl._adl_rt_systemExclusive(this.midi, ptr, bytes.length);
+                this.adl._free(ptr);
+                // adl_rt_systemExclusive returns 1 when processed, 0 when rejected
+                this.port.postMessage({ type: 'systemExclusiveSent', success: result !== 0, reqId: msg.reqId });
+                break;
+            }
+
+            // ================== Debug / Diagnostics ==================
+
+            case 'describeChannels': {
+                // Size buffers based on actual chip count (~23 channels per OPL3 chip)
+                const numChips = this.adl._adl_getNumChipsObtained(this.midi);
+                const size = Math.max(256, (numChips + 1) * 23);
+                const textPtr = this.adl._malloc(size);
+                const attrPtr = this.adl._malloc(size);
+                this.adl._adl_describeChannels(this.midi, textPtr, attrPtr, size);
+                const text = this.adl.UTF8ToString(textPtr);
+                // attr contains raw per-channel bytes; one byte per channel char in text
+                const attr = Array.from(this.adl.HEAPU8.slice(attrPtr, attrPtr + text.length));
+                this.adl._free(textPtr);
+                this.adl._free(attrPtr);
+                this.port.postMessage({ type: 'channelsDescribed', text, attr, reqId: msg.reqId });
+                break;
+            }
         }
     }
 
@@ -575,7 +767,7 @@ class AdlMidiProcessor extends AudioWorkletProcessor {
         return banks;
     }
 
-    loadBank(arrayBuffer) {
+    loadBankData(arrayBuffer) {
         try {
             const data = new Uint8Array(arrayBuffer);
             const dataPtr = this.adl._malloc(data.length);
