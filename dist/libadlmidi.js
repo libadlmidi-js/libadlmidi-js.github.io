@@ -19,7 +19,9 @@ var __privateWrapper = (obj, member, setter, getter) => ({
 var Emulator = Object.freeze({
   /** Nuked OPL3 v1.8 - Most accurate, higher CPU usage */
   NUKED: 0,
-  /** Nuked OPL3 v1.7.4 - Slightly older version */
+  /** Optimized Nuked 1.8 fork by tgies with identical output */
+  NUKED_FAST: 1,
+  /** @deprecated Use NUKED_FAST */
   NUKED_174: 1,
   /** DosBox OPL3 - Good accuracy, lower CPU usage */
   DOSBOX: 2,
@@ -88,9 +90,11 @@ var AdlMidi = class {
    * @param {string} processorUrl - URL to the bundled processor JavaScript file
    * @param {string | null} [wasmUrl=null] - Optional URL to the .wasm file for split builds.
    *                             If not provided, assumes bundled version with embedded WASM.
+   * @param {object} [defaultSettings={}] - Initial synth settings applied before ready.
+   *                             Profile wrappers use this to set a default emulator.
    * @returns {Promise<void>}
    */
-  async init(processorUrl, wasmUrl = null) {
+  async init(processorUrl, wasmUrl = null, defaultSettings = {}) {
     if (!this.ctx) {
       this.ctx = new AudioContext({ sampleRate: 44100 });
     }
@@ -107,8 +111,9 @@ var AdlMidi = class {
     this.node = new AudioWorkletNode(this.ctx, "adl-midi-processor", {
       processorOptions: {
         sampleRate: this.ctx.sampleRate,
-        wasmBinary
+        wasmBinary,
         // null for bundled, ArrayBuffer for split
+        settings: defaultSettings
       }
     });
     this.node.connect(this.ctx.destination);

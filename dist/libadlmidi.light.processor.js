@@ -2900,6 +2900,8 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
       // Deep vibrato
       deepTremolo: false,
       // Deep tremolo
+      emulator: void 0,
+      // Emulator core (undefined = libADLMIDI default)
       ...options.processorOptions?.settings
     };
     this.initWasm(options.processorOptions);
@@ -2941,6 +2943,9 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
    */
   applySettings(settings) {
     if (!this.midi) return;
+    if (settings.emulator !== void 0) {
+      this.adl._adl_switchEmulator(this.midi, settings.emulator);
+    }
     if (settings.numChips !== void 0) {
       this.adl._adl_setNumChips(this.midi, settings.numChips);
     }
