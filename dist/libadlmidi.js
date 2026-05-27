@@ -237,6 +237,72 @@ var AdlMidi = class {
   panic() {
     __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "panic" });
   }
+  // ================== Raw OPL3 API ==================
+  /**
+   * Write a raw OPL3 register on a specific chip (fire-and-forget).
+   *
+   * Bypasses the MIDI voice allocator. Reserve channels first via
+   * {@link reserveChipChannels} to prevent the MIDI driver from
+   * overwriting your register state.
+   *
+   * @param {number} chipId - Zero-based chip index (0 to getNumChipsObtained()-1)
+   * @param {number} reg - OPL3 register address (0x000-0x1FF, bit 8 selects bank)
+   * @param {number} value - Register value (0-255)
+   */
+  rawOPL3(chipId, reg, value) {
+    __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "rawOPL3", chipId, reg, value });
+  }
+  /**
+   * Reserve chip channels so the MIDI voice allocator will not use them.
+   *
+   * After reservation, use {@link rawOPL3} to drive those channels
+   * directly. Pass channelMask = 0 to release all reservations.
+   *
+   * @param {number} chipId - Zero-based chip index (0 to getNumChipsObtained()-1)
+   * @param {number} channelMask - Bitmask of per-chip channels to reserve
+   *   (bits 0-22, where bit N reserves per-chip channel N)
+   * @returns {Promise<void>}
+   */
+  async reserveChipChannels(chipId, channelMask) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve, reject) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "chipChannelsReserved",
+        reqId,
+        /** @param {{success: boolean}} msg */
+        (msg) => {
+          if (msg.success) {
+            resolve();
+          } else {
+            reject(new Error(`Failed to reserve chip channels on chip ${chipId}`));
+          }
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "reserveChipChannels", chipId, channelMask, reqId });
+    });
+  }
+  /**
+   * Read back the chip-channel reservation mask.
+   *
+   * @param {number} chipId - Zero-based chip index
+   * @returns {Promise<number>} Reservation bitmask (0 if invalid chipId)
+   */
+  async getReservedChipChannels(chipId) {
+    const reqId = __privateWrapper(this, _nextRequestId)._++;
+    return new Promise((resolve) => {
+      __privateMethod(this, _AdlMidi_instances, onceCorrelatedMessage_fn).call(
+        this,
+        "reservedChipChannels",
+        reqId,
+        /** @param {{mask: number}} msg */
+        (msg) => {
+          resolve(msg.mask);
+        }
+      );
+      __privateMethod(this, _AdlMidi_instances, send_fn).call(this, { type: "getReservedChipChannels", chipId, reqId });
+    });
+  }
   /**
    * Configure synth settings at runtime
    * @param {ConfigureSettings} settings - Settings object

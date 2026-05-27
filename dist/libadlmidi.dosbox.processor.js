@@ -2606,7 +2606,7 @@ async function createADLMIDI(moduleArg = {}) {
   Module["setValue"] = setValue;
   Module["getValue"] = getValue;
   Module["UTF8ToString"] = UTF8ToString;
-  var _adl_init, _adl_close, _adl_setNumChips, _adl_getNumChips, _adl_getNumChipsObtained, _adl_setBank, _adl_getBanksCount, _adl_getBankNames, _adl_reserveBanks, _adl_getBank, _adl_getBankId, _adl_removeBank, _adl_getFirstBank, _adl_getNextBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_getNumFourOpsChn, _adl_getNumFourOpsChnObtained, _adl_setHVibrato, _adl_getHVibrato, _adl_setHTremolo, _adl_getHTremolo, _adl_setScaleModulators, _adl_setFullRangeBrightness, _adl_setAutoArpeggio, _adl_getAutoArpeggio, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setLoopHooksOnly, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_getVolumeRangeModel, _adl_setChannelAllocMode, _adl_getChannelAllocMode, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_selectSongNum, _adl_getSongsCount, _adl_chipEmulatorName, _adl_switchEmulator, _adl_setRunAtPcmRate, _adl_linkedLibraryVersion, _adl_linkedVersion, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_loopStartTime, _adl_loopEndTime, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_describeChannels, _adl_metaMusicTitle, _adl_metaMusicCopyright, _adl_metaTrackTitleCount, _adl_metaTrackTitle, _adl_metaMarkerCount, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_trackCount, _adl_setTrackOptions, _adl_setChannelEnabled, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_noteAfterTouch, _adl_rt_channelAfterTouch, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, _adl_rt_bankChangeLSB, _adl_rt_bankChangeMSB, _adl_rt_bankChange, _adl_rt_systemExclusive, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
+  var _adl_init, _adl_close, _adl_setNumChips, _adl_getNumChips, _adl_getNumChipsObtained, _adl_setBank, _adl_getBanksCount, _adl_getBankNames, _adl_reserveBanks, _adl_getBank, _adl_getBankId, _adl_removeBank, _adl_getFirstBank, _adl_getNextBank, _adl_getInstrument, _adl_setInstrument, _adl_loadEmbeddedBank, _adl_setNumFourOpsChn, _adl_getNumFourOpsChn, _adl_getNumFourOpsChnObtained, _adl_setHVibrato, _adl_getHVibrato, _adl_setHTremolo, _adl_getHTremolo, _adl_setScaleModulators, _adl_setFullRangeBrightness, _adl_setAutoArpeggio, _adl_getAutoArpeggio, _adl_setLoopEnabled, _adl_setLoopCount, _adl_setLoopHooksOnly, _adl_setSoftPanEnabled, _adl_setVolumeRangeModel, _adl_getVolumeRangeModel, _adl_setChannelAllocMode, _adl_getChannelAllocMode, _adl_openBankFile, _adl_openBankData, _adl_openData, _adl_selectSongNum, _adl_getSongsCount, _adl_chipEmulatorName, _adl_switchEmulator, _adl_setRunAtPcmRate, _adl_linkedLibraryVersion, _adl_linkedVersion, _adl_errorString, _adl_errorInfo, _adl_reset, _adl_totalTimeLength, _adl_loopStartTime, _adl_loopEndTime, _adl_positionTell, _adl_positionSeek, _adl_positionRewind, _adl_setTempo, _adl_describeChannels, _adl_metaMusicTitle, _adl_metaMusicCopyright, _adl_metaTrackTitleCount, _adl_metaTrackTitle, _adl_metaMarkerCount, _adl_play, _adl_playFormat, _adl_generate, _adl_generateFormat, _adl_atEnd, _adl_trackCount, _adl_setTrackOptions, _adl_setChannelEnabled, _adl_panic, _adl_rt_resetState, _adl_rt_noteOn, _adl_rt_noteOff, _adl_rt_noteAfterTouch, _adl_rt_channelAfterTouch, _adl_rt_controllerChange, _adl_rt_patchChange, _adl_rt_pitchBend, _adl_rt_pitchBendML, _adl_rt_bankChangeLSB, _adl_rt_bankChangeMSB, _adl_rt_bankChange, _adl_rt_systemExclusive, _adl_rt_rawOPL3, _adl_reserveChipChannels, _adl_getReservedChipChannels, __emscripten_timeout, _malloc, _free, __emscripten_stack_restore, __emscripten_stack_alloc, _emscripten_stack_get_current, memory, __indirect_function_table, wasmMemory;
   function assignWasmExports(wasmExports2) {
     _adl_init = Module["_adl_init"] = wasmExports2["p"];
     _adl_close = Module["_adl_close"] = wasmExports2["q"];
@@ -2692,12 +2692,15 @@ async function createADLMIDI(moduleArg = {}) {
     _adl_rt_bankChangeMSB = Module["_adl_rt_bankChangeMSB"] = wasmExports2["Qa"];
     _adl_rt_bankChange = Module["_adl_rt_bankChange"] = wasmExports2["Ra"];
     _adl_rt_systemExclusive = Module["_adl_rt_systemExclusive"] = wasmExports2["Sa"];
-    __emscripten_timeout = wasmExports2["Ta"];
-    _malloc = Module["_malloc"] = wasmExports2["Ua"];
-    _free = Module["_free"] = wasmExports2["Va"];
-    __emscripten_stack_restore = wasmExports2["Wa"];
-    __emscripten_stack_alloc = wasmExports2["Xa"];
-    _emscripten_stack_get_current = wasmExports2["Ya"];
+    _adl_rt_rawOPL3 = Module["_adl_rt_rawOPL3"] = wasmExports2["Ta"];
+    _adl_reserveChipChannels = Module["_adl_reserveChipChannels"] = wasmExports2["Ua"];
+    _adl_getReservedChipChannels = Module["_adl_getReservedChipChannels"] = wasmExports2["Va"];
+    __emscripten_timeout = wasmExports2["Wa"];
+    _malloc = Module["_malloc"] = wasmExports2["Xa"];
+    _free = Module["_free"] = wasmExports2["Ya"];
+    __emscripten_stack_restore = wasmExports2["Za"];
+    __emscripten_stack_alloc = wasmExports2["_a"];
+    _emscripten_stack_get_current = wasmExports2["$a"];
     memory = wasmMemory = wasmExports2["n"];
     __indirect_function_table = wasmExports2["__indirect_function_table"];
   }
@@ -3397,6 +3400,20 @@ var _AdlMidiProcessor = class _AdlMidiProcessor extends AudioWorkletProcessor {
         const result = this.adl._adl_rt_systemExclusive(this.midi, ptr, bytes.length);
         this.adl._free(ptr);
         this.port.postMessage({ type: "systemExclusiveSent", success: result !== 0, reqId: msg.reqId });
+        break;
+      }
+      // ================== Raw OPL3 ==================
+      case "rawOPL3":
+        this.adl._adl_rt_rawOPL3(this.midi, msg.chipId, msg.reg, msg.value);
+        break;
+      case "reserveChipChannels": {
+        const result = this.adl._adl_reserveChipChannels(this.midi, msg.chipId, msg.channelMask);
+        this.port.postMessage({ type: "chipChannelsReserved", success: result === 0, chipId: msg.chipId, reqId: msg.reqId });
+        break;
+      }
+      case "getReservedChipChannels": {
+        const mask = this.adl._adl_getReservedChipChannels(this.midi, msg.chipId);
+        this.port.postMessage({ type: "reservedChipChannels", mask, chipId: msg.chipId, reqId: msg.reqId });
         break;
       }
       // ================== Debug / Diagnostics ==================
